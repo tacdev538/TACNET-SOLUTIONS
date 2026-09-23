@@ -6,12 +6,13 @@
     <title>TACNET Solutions - Command Dashboard</title>
     <style>
         :root {
-            --primary-color: #0b1329;
             --red-alert: #d9534f;
             --orange-channel: #f0ad4e;
             --green-secure: #5cb85c;
             --bg-dark: #121824;
+            --panel-bg: #1e293b;
             --text-light: #f8f9fa;
+            --border-color: #334155;
         }
         body {
             font-family: Arial, sans-serif;
@@ -22,7 +23,7 @@
         }
         header {
             text-align: center;
-            border-bottom: 2px solid #334155;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
@@ -32,14 +33,13 @@
         .container { max-width: 900px; margin: 0 auto; }
         
         .panel {
-            background: #1e293b;
+            background: var(--panel-bg);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
         
-        /* Alert Buttons */
         .alert-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -58,25 +58,34 @@
             cursor: pointer;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            transition: transform 0.1s;
         }
         .btn-alert:active { transform: scale(0.98); }
         .btn-red { background-color: var(--red-alert); }
         .btn-orange { background-color: var(--orange-channel); color: #000; }
         .btn-green { background-color: var(--green-secure); }
 
+        /* Status Banner for Feedback */
+        #status-banner {
+            background: #0f172a;
+            border-left: 4px solid var(--text-light);
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
         /* Bus Tracking Table */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th { background-color: #0f172a; color: #38bdf8; }
 
-        /* Disclaimer Footer */
         .disclaimer {
             font-size: 11px;
             color: #64748b;
             text-align: center;
             margin-top: 30px;
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid var(--panel-bg);
             padding-top: 15px;
         }
     </style>
@@ -90,20 +99,22 @@
         <div class="subtitle" style="color: #cbd5e1; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
     </header>
 
+    <!-- Instant Feedback Banner -->
+    <div id="status-banner">SYSTEM READY: Tap any status button for instant broadcast.</div>
+
     <!-- Emergency Action Panel -->
     <div class="panel">
         <h2>Emergency & Operations Control</h2>
         <div class="alert-grid">
-            <button class="btn-alert btn-red" onclick="triggerAlert('RED')">🔴 RED ALERT<br><span style="font-size:12px; font-weight:normal;">Immediate 911 / Law Enforcement</span></button>
-            <button class="btn-alert btn-orange" onclick="triggerAlert('ORANGE')">🟠 ORANGE CHANNEL<br><span style="font-size:12px; font-weight:normal;">General Coordination</span></button>
-            <button class="btn-alert btn-green" onclick="triggerAlert('GREEN')">🟢 GREEN STATUS<br><span style="font-size:12px; font-weight:normal;">All Clear / Secure</span></button>
+            <button class="btn-alert btn-red" onclick="sendInstantSignal('RED')">🔴 RED ALERT<br><span style="font-size:12px; font-weight:normal;">Instant Emergency Dispatch</span></button>
+            <button class="btn-alert btn-orange" onclick="sendInstantSignal('ORANGE')">🟠 ORANGE CHANNEL<br><span style="font-size:12px; font-weight:normal;">General Coordination</span></button>
+            <button class="btn-alert btn-green" onclick="sendInstantSignal('GREEN')">🟢 GREEN STATUS<br><span style="font-size:12px; font-weight:normal;">All Clear / Secure</span></button>
         </div>
     </div>
 
     <!-- School Bus Fleet GPS Live View -->
     <div class="panel">
         <h2>School Bus & Fleet Live GPS Tracker</h2>
-        <p style="font-size: 13px; color: #94a3b8;">Active monitoring for school buses and route security.</p>
         <table>
             <thead>
                 <tr>
@@ -113,24 +124,23 @@
                     <th>Status / GPS</th>
                 </tr>
             </thead>
-            <tbody id="bus-fleet-table">
+            <tbody>
                 <tr>
                     <td>Bus 104</td>
                     <td>J. Miller</td>
                     <td>Route 4 - North County</td>
-                    <td><span style="color: #5cb85c;">● Live (GPS Active)</span></td>
+                    <td><span style="color: var(--green-secure);">● Live (GPS Active)</span></td>
                 </tr>
                 <tr>
                     <td>Bus 112</td>
                     <td>R. Davis</td>
                     <td>Route 2 - Central High</td>
-                    <td><span style="color: #5cb85c;">● Live (GPS Active)</span></td>
+                    <td><span style="color: var(--green-secure);">● Live (GPS Active)</span></td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Legal Disclaimer -->
     <div class="disclaimer">
         <strong>DISCLAIMER:</strong> TACNET Solutions is a tactical coordination and notification tool designed to assist authorized school personnel and law enforcement agencies. Created by Earl Wood (Retired Deputy Sheriff). Use of this system implies adherence to local emergency protocols. TACNET Solutions assumes no liability for hardware failure, cellular carrier interruptions, or delayed emergency responses.
     </div>
@@ -141,7 +151,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Your Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDspWm87xwu8mojW2I4uil-XKoSJtPGlDo",
         authDomain: "tacnet-solutions.firebaseapp.com",
@@ -153,30 +162,36 @@
         measurementId: "G-PB9GLPJFQ1"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const banner = document.getElementById('status-banner');
 
-    // Global alert trigger function linked to Firebase
-    window.triggerAlert = function(level) {
-        if(level === 'RED') {
-            let desc = prompt("CRITICAL: Describe the threat (Location, suspect description):");
-            if(!desc) return;
-            
-            // Push alert to Firebase Realtime Database
-            set(ref(db, 'alerts/current'), {
-                level: 'RED',
-                description: desc,
-                timestamp: Date.now(),
-                source: 'School/Bus Master Dispatch'
-            }).then(() => {
-                alert("RED ALERT BROADCASTED LIVE TO LAW ENFORCEMENT.");
-            });
-        } else if(level === 'ORANGE') {
-            alert("Orange Channel opened for general coordination.");
-        } else if(level === 'GREEN') {
-            alert("Status set to GREEN (Secure).");
-        }
+    // INSTANT ONE-TAP SIGNAL (Zero pop-ups, zero typing boxes)
+    window.sendInstantSignal = function(level) {
+        let timestamp = Date.now();
+        
+        set(ref(db, 'alerts/current'), {
+            level: level,
+            timestamp: timestamp,
+            source: 'Master Dispatch Grid'
+        }).then(() => {
+            if(level === 'RED') {
+                banner.style.borderColor = 'var(--red-alert)';
+                banner.style.color = 'var(--red-alert)';
+                banner.innerText = '🔴 RED ALERT BROADCASTED INSTANTLY TO LAW ENFORCEMENT & SCHOOLS.';
+            } else if(level === 'ORANGE') {
+                banner.style.borderColor = 'var(--orange-channel)';
+                banner.style.color = 'var(--orange-channel)';
+                banner.innerText = '🟠 ORANGE CHANNEL OPENED FOR MUTUAL COORDINATION.';
+            } else if(level === 'GREEN') {
+                banner.style.borderColor = 'var(--green-secure)';
+                banner.style.color = 'var(--green-secure)';
+                banner.innerText = '🟢 STATUS SET TO GREEN: ALL ZONES SECURE.';
+            }
+        }).catch((error) => {
+            banner.style.borderColor = 'var(--red-alert)';
+            banner.innerText = 'ERROR: Transmission failed. Check connection.';
+        });
     }
 </script>
 
