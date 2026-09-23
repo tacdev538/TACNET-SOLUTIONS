@@ -221,10 +221,12 @@
             align-items: center; 
             justify-content: center; 
             color: var(--command-blue); 
-            font-size: 14px;
+            font-size: 13px;
             border-radius: 6px; 
             margin-bottom: 8px;
             border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            padding: 5px;
         }
 
         .disclaimer {
@@ -315,9 +317,14 @@
     <div class="modal-content">
         <h2>🚨 RED ALERT BROADCAST ACTIVE</h2>
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Signal sent to Law Enforcement & School Command.</p>
-        <p style="font-size: 14px; font-weight: bold; color: var(--text-light);">TAP THREAT PROFILE INSTANTLY:</p>
+        <p style="font-size: 14px; font-weight: bold; color: var(--text-light);">TAP THREAT PROFILE OR LIVE PA:</p>
         
         <div class="photo-grid">
+            <!-- New Live Speech / PA Deterrent Square -->
+            <div class="photo-option" onclick="activateLiveSpeech()" style="border: 2px solid var(--command-blue); background: rgba(58, 134, 255, 0.15);">
+                <div class="photo-box-icon" style="background: var(--command-blue); color: white; font-weight: bold;">🎙️ LIVE PA</div>
+                Live Speech
+            </div>
             <div class="photo-option" onclick="sendAlertPackage('Armed Individual / Active Threat')">
                 <div class="photo-box-icon" style="color: var(--alert-red);">ARMED</div>
                 Active Threat
@@ -335,12 +342,8 @@
                 Trespasser
             </div>
             <div class="photo-option" onclick="sendAlertPackage('Live Camera Capture')">
-                <div class="photo-box-icon" style="background: var(--command-blue); color: white;">📷 SNAP</div>
+                <div class="photo-box-icon" style="background: #2b3a63; color: white;">📷 SNAP</div>
                 Live Photo
-            </div>
-            <div class="photo-option" onclick="sendAlertPackage('General Perimeter Breach')">
-                <div class="photo-box-icon">BREACH</div>
-                Perimeter
             </div>
         </div>
 
@@ -350,8 +353,12 @@
 
 <script>
     function triggerRedAlert() {
-        // Zero typing, opens visual selection immediately
         document.getElementById('alertModal').style.display = 'flex';
+    }
+
+    function activateLiveSpeech() {
+        document.getElementById('alertModal').style.display = 'none';
+        alert("🎙️ LIVE PA & DETERRENT BROADCAST ACTIVE!\n\n- Microphone open to school PA system and command.\n- Deterrent broadcast transmitting: Suspect has been spotted; law enforcement en route.");
     }
 
     function sendAlertPackage(threatType) {
