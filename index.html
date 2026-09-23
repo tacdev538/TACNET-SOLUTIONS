@@ -82,6 +82,33 @@
             font-size: 16px;
         }
 
+        /* Mode Selector (School vs Bus Driver) */
+        .mode-toggle-bar {
+            display: flex;
+            background: #172554;
+            border: 2px solid var(--command-blue);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--command-blue);
+            color: #1E3A8A;
+        }
+
         /* Zone Selection Grid */
         .zone-grid {
             display: grid;
@@ -218,14 +245,6 @@
             box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
         }
 
-        .suspect-card img {
-            width: 100%;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-
         .suspect-card span {
             font-size: 11px;
             color: var(--text-light);
@@ -341,12 +360,21 @@
         <span>LOCATION: <strong style="color: var(--command-blue);">Amherst County Operations</strong></span>
     </div>
 
+    <!-- OPERATIONAL MODE TOGGLE (School Building vs. Bus Fleet) -->
+    <div class="card" style="padding: 12px; margin-bottom: 15px;">
+        <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 8px 0; text-transform: uppercase;">Select Operational Profile:</p>
+        <div class="mode-toggle-bar">
+            <button class="mode-btn active" id="profileSchool" onclick="setProfile('SCHOOL')">🏫 School Building Personnel</button>
+            <button class="mode-btn" id="profileBus" onclick="setProfile('BUS')">🚌 School Bus Driver</button>
+        </div>
+    </div>
+
     <!-- ZONE SELECTOR & RED ALERT -->
     <div class="card" style="border-top: 4px solid var(--alert-red);">
-        <h3 style="color: var(--alert-red);">🔴 STEP 1: SELECT ZONE & TRIGGER EMERGENCY</h3>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Tap your current zone, then press Red Alert for instant location dispatch.</p>
+        <h3 style="color: var(--alert-red);" id="alertCardTitle">🔴 STEP 1: SELECT ZONE & TRIGGER EMERGENCY</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;" id="alertCardSub">Tap your location zone, then press Red Alert for direct law enforcement dispatch.</p>
         
-        <div class="zone-grid">
+        <div class="zone-grid" id="zoneSelectionContainer">
             <button class="zone-btn" id="zone-MAIN" onclick="selectZone('MAIN')">1. MAIN</button>
             <button class="zone-btn" id="zone-CAF" onclick="selectZone('CAF')">2. CAF</button>
             <button class="zone-btn" id="zone-GYM" onclick="selectZone('GYM')">3. GYM</button>
@@ -358,8 +386,8 @@
     <!-- STEP 2: VOICE DESCRIPTION MODAL -->
     <div id="voiceModal" class="modal-overlay">
         <div class="modal-card">
-            <h2>🚨 RED ALERT DISPATCHED!</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Zone locked. Tap below and speak threat details:</p>
+            <h2 id="modalTitle">🚨 RED ALERT DISPATCHED!</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;" id="modalSub">Zone locked. Tap below and speak threat details:</p>
             
             <button id="speakButton" class="btn-speak" onclick="startVoiceRecognition()">
                 🎙️ TAP TO SPEAK NOW
@@ -394,7 +422,7 @@
                 </div>
             </div>
 
-            <button class="btn-action" onclick="finalizeAndBroadcastAlert()">🚀 BROADCAST COMPLETE PACKAGE TO LAW ENFORCEMENT</button>
+            <button class="btn-action" id="finalBroadcastBtn" onclick="finalizeAndBroadcastAlert()">🚀 BROADCAST COMPLETE PACKAGE TO LAW ENFORCEMENT</button>
         </div>
     </div>
 
@@ -477,18 +505,48 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    let currentProfile = "SCHOOL"; // SCHOOL or BUS
     let selectedCurrentZone = "NONE";
     let activeAlertKey = null;
     let recordedThreatText = "";
     let selectedSuspectPhoto = "None Selected";
 
+    function setProfile(profileType) {
+        currentProfile = profileType;
+        const zoneContainer = document.getElementById('zoneSelectionContainer');
+        const alertTitle = document.getElementById('alertCardTitle');
+        const alertSub = document.getElementById('alertCardSub');
+
+        document.getElementById('profileSchool').classList.remove('active');
+        document.getElementById('profileBus').classList.remove('active');
+        document.getElementById('profile' + (profileType === 'SCHOOL' ? 'School' : 'Bus')).classList.add('active');
+
+        if (profileType === 'BUS') {
+            alertTitle.innerText = "🚌 BUS FLEET EMERGENCY ROUTING";
+            alertSub.innerText = "Bus alert routes to School Office command filter for 911 coordination.";
+            zoneContainer.innerHTML = `
+                <button class="zone-btn" id="zone-BUS04" onclick="selectZone('Bus 04 (Route 12)')">Bus 04</button>
+                <button class="zone-btn" id="zone-BUS12" onclick="selectZone('Bus 12 (Route 05)')">Bus 12</button>
+                <button class="zone-btn" id="zone-BUS18" onclick="selectZone('Bus 18 (Route 22)')">Bus 18</button>
+            `;
+        } else {
+            alertTitle.innerText = "🔴 STEP 1: SELECT ZONE & TRIGGER EMERGENCY";
+            alertSub.innerText = "Tap your location zone, then press Red Alert for direct law enforcement dispatch.";
+            zoneContainer.innerHTML = `
+                <button class="zone-btn" id="zone-MAIN" onclick="selectZone('MAIN')">1. MAIN</button>
+                <button class="zone-btn" id="zone-CAF" onclick="selectZone('CAF')">2. CAF</button>
+                <button class="zone-btn" id="zone-GYM" onclick="selectZone('GYM')">3. GYM</button>
+            `;
+        }
+        selectedCurrentZone = "NONE";
+    }
+
     function selectZone(zoneName) {
         selectedCurrentZone = zoneName;
-        document.getElementById('zone-MAIN').classList.remove('selected');
-        document.getElementById('zone-CAF').classList.remove('selected');
-        document.getElementById('zone-GYM').classList.remove('selected');
-        
-        document.getElementById('zone-' + zoneName).classList.add('selected');
+        // Reset buttons in current container
+        const btns = document.querySelectorAll('.zone-btn');
+        btns.forEach(b => b.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
     }
 
     const dbStatusRef = document.getElementById("db-status");
@@ -504,12 +562,16 @@
 
     function triggerRedAlert() {
         if (selectedCurrentZone === "NONE") {
-            selectedCurrentZone = "MAIN (Default)";
+            selectedCurrentZone = currentProfile === 'BUS' ? "Bus 04 (Default Route)" : "MAIN (Default Room)";
         }
 
-        // Push initial alert instantly to database
+        // Determine routing destination based on profile
+        const routingDestination = currentProfile === 'BUS' ? 'SCHOOL OFFICE COMMAND FILTER' : 'DIRECT LAW ENFORCEMENT DISPATCH';
+
         const newAlertRef = database.ref('alerts').push({
             type: 'RED ALERT',
+            profile: currentProfile,
+            routing: routingDestination,
             zone: selectedCurrentZone,
             description: 'Voice pending...',
             suspectPhoto: 'Pending...',
@@ -521,10 +583,20 @@
         recordedThreatText = "";
         selectedSuspectPhoto = "None Selected";
         
+        // Update modal text dynamically based on routing
+        if (currentProfile === 'BUS') {
+            document.getElementById('modalTitle').innerText = "🚌 BUS ALERT SENT TO SCHOOL OFFICE";
+            document.getElementById('modalSub').innerText = "Office notified for 911 bridge. Tap below & speak details:";
+            document.getElementById('finalBroadcastBtn').innerText = "🚀 PUSH PACKAGE TO SCHOOL OFFICE & 911";
+        } else {
+            document.getElementById('modalTitle').innerText = "🚨 RED ALERT DISPATCHED!";
+            document.getElementById('modalSub').innerText = "Zone locked. Tap below and speak threat details:";
+            document.getElementById('finalBroadcastBtn').innerText = "🚀 BROADCAST COMPLETE PACKAGE TO LAW ENFORCEMENT";
+        }
+
         document.getElementById('transcriptBox').innerText = "Tap 'SPEAK NOW' and describe the threat...";
         document.getElementById('voiceModal').style.display = 'flex';
         
-        // Auto-trigger voice recognition
         startVoiceRecognition();
     }
 
@@ -553,7 +625,7 @@
             transcriptBox.innerText = `"${speechResult}"`;
         };
 
-        recognition.onerror = function(event) {
+        recognition.onerror = function() {
             speakBtn.classList.remove('listening');
             speakBtn.innerText = "🎙️ TAP TO SPEAK NOW";
             transcriptBox.innerText = "Voice capture complete or bypassed.";
@@ -612,9 +684,7 @@
         activeAlertKey = null;
         recordedThreatText = "";
         selectedSuspectPhoto = "None Selected";
-        document.getElementById('zone-MAIN').classList.remove('selected');
-        document.getElementById('zone-CAF').classList.remove('selected');
-        document.getElementById('zone-GYM').classList.remove('selected');
+        setProfile('SCHOOL');
     }
 </script>
 
