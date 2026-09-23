@@ -1,442 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TACNET Solutions - 7-Classroom Command Dashboard</title>
-    <!-- Firebase SDK Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+
+// Wi-Fi Credentials
+#define WIFI_SSID "YOUR_WIFI_NAME"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+
+// Firebase Project Credentials
+#define FIREBASE_HOST "tacnet-solutions-default-rtdb.firebaseio.com"
+#define FIREBASE_AUTH "YOUR_FIREBASE_DATABASE_SECRET_OR_WEB_API_KEY"
+
+FirebaseData firebaseData;
+FirebaseAuth auth;
+FirebaseConfig config;
+
+// Define Pin Mappings for all 7 Classrooms (Red and Green LEDs)
+struct ClassroomPins {
+  const char* id;
+  int redPin;
+  int greenPin;
+};
+
+ClassroomPins rooms[] = {
+  {"room120", 13, 12}, // Downstairs Left
+  {"room121", 14, 27},
+  {"room122", 26, 25},
+  {"room200", 33, 32}, // Upstairs Left
+  {"room201", 4,  16},
+  {"room202", 17, 5},
+  {"room203", 18, 19}
+};
+
+const int totalRooms = 7;
+unsigned long previousMillis = 0;
+bool flashState = false;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Initialize all LED pins as outputs
+  for (int i = 0; i < totalRooms; i++) {
+    pinMode(rooms[i].redPin, OUTPUT);
+    pinMode(rooms[i].greenPin, OUTPUT);
+    // Start all green ON, red OFF
+    digitalWrite(rooms[i].greenPin, HIGH);
+    digitalWrite(rooms[i].redPin, LOW);
+  }
+
+  // Connect Wi-Fi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi Connected!");
+
+  // Configure Firebase
+  config.database_url = FIREBASE_HOST;
+  config.signer.test_mode = true;
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
+}
+
+void loop() {
+  unsigned long currentMillis = millis();
+  
+  // Flash toggle every 500ms for active red alarms
+  if (currentMillis - previousMillis >= 500) {
+    previousMillis = currentMillis;
+    flashState = !flashState;
+  }
+
+  // Check status for each of the 7 rooms from Firebase
+  for (int i = 0; i < totalRooms; i++) {
+    String path = String("/classrooms/") + rooms[i].id + "/status";
     
-    <style>
-        :root {
-            --bg-royal: #1E3A8A;
-            --panel-blue: #1E40AF;
-            --command-blue: #60A5FA;
-            --alert-red: #EF4444;
-            --secure-green: #10B981;
-            --text-light: #FFFFFF;
-            --text-muted: #CBD5E1;
-        }
-
-        body {
-            background-color: var(--bg-royal);
-            color: var(--text-light);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 950px;
-            margin: 0 auto;
-        }
-
-        header {
-            background-color: var(--panel-blue);
-            border: 2px solid var(--command-blue);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        header h1 {
-            margin: 0;
-            color: var(--text-light);
-            font-size: 24px;
-            letter-spacing: 1px;
-        }
-
-        header p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            background-color: var(--panel-blue);
-            padding: 12px 18px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--secure-green);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .card {
-            background-color: var(--panel-blue);
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.15);
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        .card h3 {
-            margin-top: 0;
-            font-size: 16px;
-        }
-
-        .section-header {
-            font-size: 14px;
-            color: var(--command-blue);
-            margin: 20px 0 10px 0;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            padding-bottom: 5px;
-        }
-
-        /* Classroom Grid */
-        .classroom-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .room-card {
-            background-color: #172554;
-            border: 2px solid var(--command-blue);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            transition: 0.2s;
-        }
-
-        .room-card.alert-active {
-            border-color: var(--alert-red);
-            background-color: #450A0A;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
-        }
-
-        .room-card h4 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-            color: var(--text-light);
-        }
-
-        /* LED Indicator Lights */
-        .led-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 15px 0;
-            align-items: center;
-        }
-
-        .led-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-
-        .led-light {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-bottom: 4px;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .led-green {
-            background-color: #064E3B;
-        }
-        .led-green.active {
-            background-color: var(--secure-green);
-            box-shadow: 0 0 12px var(--secure-green);
-        }
-
-        .led-red {
-            background-color: #7F1D1D;
-        }
-        .led-red.active {
-            background-color: var(--alert-red);
-            box-shadow: 0 0 15px var(--alert-red);
-            animation: flash-red 0.6s infinite alternate;
-        }
-
-        @keyframes flash-red {
-            0% { opacity: 0.3; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1.1); }
-        }
-
-        .room-btn-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .btn-room-alert {
-            flex: 1;
-            background: linear-gradient(135deg, #EF4444, #991B1B);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .btn-room-reset {
-            flex: 1;
-            background: linear-gradient(135deg, #10B981, #047857);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        /* Timestamped Incident Log */
-        .log-box {
-            background-color: #0F172A;
-            border: 1px solid var(--command-blue);
-            border-radius: 6px;
-            padding: 12px;
-            max-height: 180px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
-            color: var(--secure-green);
-            text-align: left;
-        }
-
-        .disclaimer {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-align: center;
-            margin-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.15);
-            padding-top: 15px;
-            line-height: 1.4;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <header>
-        <h1>TACNET SOLUTIONS</h1>
-        <p>Created by Retired Deputy Sheriff Earl Wood, Virginia</p>
-    </header>
-
-    <div class="status-bar">
-        <span>SYSTEM STATUS: <strong id="db-status" style="color: var(--alert-amber);">CONNECTING TO FIREBASE...</strong></span>
-        <span>LOCATION: <strong style="color: var(--command-blue);">Amherst County School Command</strong></span>
-    </div>
-
-    <!-- 7 CLASSROOMS LED STATUS PANEL -->
-    <div class="card" style="border-top: 4px solid var(--alert-red);">
-        <h3 style="color: var(--alert-red);">🏫 7-CLASSROOM REAL-TIME LED STATUS & ACTIVATION GRID</h3>
-        <p style="font-size: 12px; color: var(--text-muted);">Downstairs Left & Upstairs Left Wing Status Monitor.</p>
-        
-        <div class="section-header">📍 Downstairs Left Wing</div>
-        <div class="classroom-grid" id="downstairsGrid"></div>
-
-        <div class="section-header">📍 Upstairs Left Wing</div>
-        <div class="classroom-grid" id="upstairsGrid"></div>
-    </div>
-
-    <!-- TIMESTAMPED REPORT LOG -->
-    <div class="card" style="border-top: 4px solid var(--command-blue);">
-        <h3 style="color: var(--command-blue);">📋 Timestamped Incident & Event Log</h3>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Real-time audit trail of all alerts, activations, and resets.</p>
-        <div id="incidentLog" class="log-box">
-            [System initialized. Waiting for classroom telemetry...]
-        </div>
-    </div>
-
-    <!-- Legal Disclaimer -->
-    <div class="disclaimer">
-        <strong>LEGAL DISCLAIMER:</strong> TACNET Solutions is designed as an emergency notification and situational awareness aid for authorized law enforcement, school personnel, and transport fleets. Created by retired Deputy Sheriff Earl Wood, Virginia. Users agree to operate in accordance with local agency protocols and statutory requirements. All rights reserved.
-    </div>
-</div>
-
-<!-- Audio element for local siren playback simulation -->
-<audio id="emergencySiren" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg" type="audio/ogg">
-</audio>
-
-<script>
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDspWm87xwu8mojW2I4uil-XKoSJtPGlDo",
-        authDomain: "tacnet-solutions.firebaseapp.com",
-        databaseURL: "https://tacnet-solutions-default-rtdb.firebaseio.com",
-        projectId: "tacnet-solutions",
-        storageBucket: "tacnet-solutions.firebasestorage.app",
-        messagingSenderId: "187011886327",
-        appId: "1:187011886327:web:e7d4758bf9198b467777f2",
-        measurementId: "G-PB9GLPJFQ1"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // Corrected 7 Classrooms Data Structure
-    const downstairsRooms = [
-        { id: "room120", name: "Room 120" },
-        { id: "room121", name: "Room 121" },
-        { id: "room122", name: "Room 122" }
-    ];
-
-    const upstairsRooms = [
-        { id: "room200", name: "Room 200" },
-        { id: "room201", name: "Room 201" },
-        { id: "room202", name: "Room 202" },
-        { id: "room203", name: "Room 203" }
-    ];
-
-    const allRooms = [...downstairsRooms, ...upstairsRooms];
-
-    // Render Classroom Cards into Respective Wings
-    function renderClassrooms() {
-        const downGrid = document.getElementById('downstairsGrid');
-        const upGrid = document.getElementById('upstairsGrid');
-        
-        downGrid.innerHTML = "";
-        upGrid.innerHTML = "";
-
-        downstairsRooms.forEach(room => {
-            downGrid.innerHTML += createRoomCardHTML(room);
-        });
-
-        upstairsRooms.forEach(room => {
-            upGrid.innerHTML += createRoomCardHTML(room);
-        });
+    if (Firebase.getString(firebaseData, path)) {
+      String status = firebaseData.stringData();
+      
+      if (status == "ALERT") {
+        // Extinguish Green, Flash Red LED for this specific room
+        digitalWrite(rooms[i].greenPin, LOW);
+        digitalWrite(rooms[i].redPin, flashState ? HIGH : LOW);
+      } else {
+        // Secure State: Solid Green ON, Red OFF
+        digitalWrite(rooms[i].greenPin, HIGH);
+        digitalWrite(rooms[i].redPin, LOW);
+      }
     }
-
-    function createRoomCardHTML(room) {
-        return `
-            <div class="room-card" id="card-${room.id}">
-                <h4>${room.name}</h4>
-                <div class="led-container">
-                    <div class="led-indicator">
-                        <div class="led-light led-green active" id="green-${room.id}"></div>
-                        <span>SECURE (GREEN)</span>
-                    </div>
-                    <div class="led-indicator">
-                        <div class="led-light led-red" id="red-${room.id}"></div>
-                        <span>ALERT (RED)</span>
-                    </div>
-                </div>
-                <div class="room-btn-group">
-                    <button class="btn-room-alert" onclick="triggerRoomAlert('${room.id}', '${room.name}')">🚨 RED ALERT</button>
-                    <button class="btn-room-reset" onclick="resetRoom('${room.id}', '${room.name}')">🟢 RESET</button>
-                </div>
-            </div>
-        `;
-    }
-
-    // Database Connection Status Monitor
-    const dbStatusRef = document.getElementById("db-status");
-    database.ref(".info/connected").on("value", function(snapshot) {
-        if (snapshot.val() === true) {
-            dbStatusRef.style.color = "var(--secure-green)";
-            dbStatusRef.innerText = "ONLINE (Firebase Connected)";
-        } else {
-            dbStatusRef.style.color = "var(--alert-red)";
-            dbStatusRef.innerText = "OFFLINE / RECONNECTING...";
-        }
-    });
-
-    // Listen for Real-Time Updates across classrooms from Firebase
-    database.ref('classrooms').on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        allRooms.forEach(room => {
-            const roomData = data[room.id] || { status: 'SECURE' };
-            updateRoomUI(room.id, roomData.status);
-        });
-    });
-
-    // Listen to Timestamped Logs in Real-Time
-    database.ref('logs').limitToLast(10).on('value', (snapshot) => {
-        const logBox = document.getElementById('incidentLog');
-        logBox.innerHTML = "";
-        const logs = snapshot.val();
-        if (!logs) {
-            logBox.innerHTML = "[System initialized. Waiting for activity...]";
-            return;
-        }
-        Object.values(logs).forEach(logEntry => {
-            logBox.innerHTML += `<div>[${logEntry.timestamp}] ${logEntry.message}</div>`;
-        });
-        logBox.scrollTop = logBox.scrollHeight;
-    });
-
-    // Trigger Red Alert for a specific room
-    function triggerRoomAlert(roomId, roomName) {
-        const timestamp = new Date().toLocaleTimeString();
-        
-        database.ref('classrooms/' + roomId).set({
-            status: 'ALERT',
-            triggeredAt: timestamp
-        });
-
-        database.ref('logs').push({
-            timestamp: timestamp,
-            message: `🔴 RED ALERT: ${roomName} green LED off, flashing red LED active.`
-        });
-
-        playSiren();
-    }
-
-    // Reset a specific room back to Secure Green
-    function resetRoom(roomId, roomName) {
-        const timestamp = new Date().toLocaleTimeString();
-
-        database.ref('classrooms/' + roomId).set({
-            status: 'SECURE',
-            resetAt: timestamp
-        });
-
-        database.ref('logs').push({
-            timestamp: timestamp,
-            message: `🟢 RESET: ${roomName} returned to secure green status.`
-        });
-    }
-
-    // Update Local Visual UI
-    function updateRoomUI(roomId, status) {
-        const card = document.getElementById(`card-${roomId}`);
-        const greenLed = document.getElementById(`green-${roomId}`);
-        const redLed = document.getElementById(`red-${roomId}`);
-
-        if (!card || !greenLed || !redLed) return;
-
-        if (status === 'ALERT') {
-            card.classList.add('alert-active');
-            greenLed.classList.remove('active');
-            redLed.classList.add('active');
-        } else {
-            card.classList.remove('alert-active');
-            greenLed.classList.add('active');
-            redLed.classList.remove('active');
-        }
-    }
-
-    // Audio Siren Helper
-    function playSiren() {
-        const siren = document.getElementById('emergencySiren');
-        if (siren) {
-            siren.currentTime = 0;
-            siren.play().catch(e => console.log("Audio autoplay waiting for user interaction."));
-        }
-    }
-
-    // Initialize UI on load
-    renderClassrooms();
-</script>
-
-</body>
-</html>
+  }
+  
+  delay(100); // Brief pause before next telemetry poll
+}
