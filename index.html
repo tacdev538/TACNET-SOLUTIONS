@@ -87,24 +87,31 @@
             padding: 15px;
             margin-bottom: 20px;
         }
+        .section-label {
+            font-size: 12px;
+            color: var(--accent-blue);
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
         .tactical-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
         }
         @media(min-width: 600px) {
             .tactical-grid { grid-template-columns: repeat(4, 1fr); }
         }
         .tactical-square {
             background: #1e293b;
-            border: 1px solid var(--accent-blue);
+            border: 1px solid var(--border-color);
             color: white;
-            padding: 12px;
+            padding: 10px;
             text-align: center;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             transition: background 0.2s;
         }
@@ -118,10 +125,47 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 10px;
-            margin-top: 10px;
+            margin-top: 5px;
             resize: vertical;
             height: 60px;
             font-family: inherit;
+        }
+
+        .media-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #334155;
+            color: white;
+            border: 1px solid var(--accent-blue);
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .action-btn:hover { background: var(--accent-blue); color: #000; }
+        .action-btn.recording { background: var(--red-alert); animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        #preview-container {
+            margin-top: 10px;
+            display: none;
+        }
+        #photo-preview {
+            max-width: 150px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
 
         #map {
@@ -167,27 +211,48 @@
         </div>
     </div>
 
-    <!-- Built-in Tactical Threat Panel -->
+    <!-- Built-in Tactical Threat Panel (Sub-3-Second Workflow with Live Voice & Location Grid) -->
     <div id="threat-panel">
-        <h3 style="color: var(--red-alert); margin-top: 0;">🚨 ACTIVE RED ALERT - SELECT THREAT DETAILS</h3>
-        <p style="font-size: 12px; color: #94a3b8; margin: 5px 0;">Tap quick-select squares or speak/type description below before transmitting to Law Enforcement.</p>
+        <h3 style="color: var(--red-alert); margin-top: 0;">🚨 ACTIVE RED ALERT - RAPID THREAT PACKAGE</h3>
         
+        <div class="section-label">1. Person of Interest Descriptors</div>
         <div class="tactical-grid">
             <div class="tactical-square" onclick="toggleSquare(this, 'White Male')">White Male</div>
             <div class="tactical-square" onclick="toggleSquare(this, 'Green Jacket')">Green Jacket</div>
             <div class="tactical-square" onclick="toggleSquare(this, 'Hoodie')">Hoodie</div>
             <div class="tactical-square" onclick="toggleSquare(this, 'Armed / Gun')">Armed / Gun</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'Active Shooter')">Active Shooter</div>
+        </div>
+
+        <div class="section-label">2. Precise Location / Campus Zone Grid</div>
+        <div class="tactical-grid">
             <div class="tactical-square" onclick="toggleSquare(this, 'West Side')">West Side</div>
             <div class="tactical-square" onclick="toggleSquare(this, 'Courtyard')">Courtyard</div>
             <div class="tactical-square" onclick="toggleSquare(this, 'Main Entrance')">Main Entrance</div>
+            <div class="tactical-square" onclick="toggleSquare(this, 'North Hall')">North Hall</div>
         </div>
 
-        <textarea id="threat-description" placeholder="Live Speech / Typed Description (e.g., White male, green jacket, hoodie carrying firearm)..."></textarea>
-        
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn-alert btn-red" style="padding: 12px; font-size: 14px;" onclick="transmitRedAlert()">TRANSMIT FULL PACKAGE NOW</button>
-            <button class="btn-alert" style="padding: 12px; font-size: 14px; background: #475569;" onclick="cancelRedAlert()">CANCEL</button>
+        <div class="section-label">3. Live Voice & Description Input</div>
+        <div class="media-controls">
+            <!-- LIVE SPEECH BUTTON -->
+            <button class="action-btn" id="voice-btn" onclick="toggleVoiceRecognition()">🎙️ SPEAK NOW (LIVE VOICE)</button>
+            <!-- CAMERA CAPTURE -->
+            <label class="action-btn" style="cursor:pointer;">
+                📷 SNAP PHOTO <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoCapture(event)">
+            </label>
+            <!-- PA TOGGLE -->
+            <button class="action-btn" id="pa-toggle-btn" onclick="togglePABroadcast()">📢 PA: OFF</button>
+        </div>
+
+        <textarea id="threat-description" placeholder="Tap 'Speak Now' to dictate live speech or type description here..."></textarea>
+
+        <div id="preview-container">
+            <p style="font-size: 11px; color: #38bdf8; margin: 5px 0;">Attached Suspect Photo Preview:</p>
+            <img id="photo-preview" src="" alt="Suspect Photo Evidence">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-alert btn-red" style="padding: 12px; font-size: 14px; flex: 2;" onclick="transmitRedAlert()">⚡ TRANSMIT FULL PACKAGE NOW (&lt; 3 SEC)</button>
+            <button class="btn-alert" style="padding: 12px; font-size: 14px; background: #475569; flex: 1;" onclick="cancelRedAlert()">CANCEL</button>
         </div>
     </div>
 
@@ -240,6 +305,63 @@
     const banner = document.getElementById('status-banner');
     const threatPanel = document.getElementById('threat-panel');
     const threatDescBox = document.getElementById('threat-description');
+    const previewContainer = document.getElementById('preview-container');
+    const photoPreview = document.getElementById('photo-preview');
+    const paToggleBtn = document.getElementById('pa-toggle-btn');
+    const voiceBtn = document.getElementById('voice-btn');
+
+    let paActive = false;
+    let attachedPhotoData = null;
+    let recognition = null;
+    let isRecording = false;
+
+    // Initialize Web Speech API if supported
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = function(event) {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            threatDescBox.value = transcript;
+        };
+
+        recognition.onerror = function(event) {
+            console.log("Speech recognition error", event.error);
+            stopVoiceRecognition();
+        };
+
+        recognition.onend = function() {
+            stopVoiceRecognition();
+        };
+    }
+
+    function toggleVoiceRecognition() {
+        if (!recognition) {
+            alert("Speech recognition is not supported on this browser/device. Please type your description.");
+            return;
+        }
+
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+            isRecording = true;
+            voiceBtn.classList.add('recording');
+            voiceBtn.innerText = '🔴 LISTENING... (TAP TO STOP)';
+        }
+    }
+
+    function stopVoiceRecognition() {
+        isRecording = false;
+        voiceBtn.classList.remove('recording');
+        voiceBtn.innerText = '🎙️ SPEAK NOW (LIVE VOICE)';
+    }
 
     const map = L.map('map').setView([37.5858, -79.0503], 12);
     
@@ -254,7 +376,7 @@
     function openRedAlertPanel() {
         banner.style.borderColor = '#d9534f';
         banner.style.color = '#d9534f';
-        banner.innerText = '🔴 RED ALERT INITIATED: Select threat criteria below.';
+        banner.innerText = '🔴 RED ALERT INITIATED: Select target grid & speak details.';
         threatPanel.style.display = 'block';
         threatPanel.scrollIntoView({ behavior: 'smooth' });
     }
@@ -269,18 +391,56 @@
         }
     }
 
+    function handlePhotoCapture(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                attachedPhotoData = e.target.result;
+                photoPreview.src = attachedPhotoData;
+                previewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function togglePABroadcast() {
+        paActive = !paActive;
+        if (paActive) {
+            paToggleBtn.style.background = '#d9534f';
+            paToggleBtn.style.borderColor = 'white';
+            paToggleBtn.innerText = '📢 PA: ACTIVE';
+        } else {
+            paToggleBtn.style.background = '#334155';
+            paToggleBtn.style.borderColor = '#38bdf8';
+            paToggleBtn.innerText = '📢 PA: OFF';
+        }
+    }
+
     function transmitRedAlert() {
+        if (isRecording && recognition) {
+            recognition.stop();
+        }
         let finalDetails = threatDescBox.value || "Emergency Red Alert Triggered";
-        banner.innerText = '🔴 TRANSMITTED TO LAW ENFORCEMENT & SCHOOLS: ' + finalDetails;
+        let photoStatus = attachedPhotoData ? " [Photo Attached]" : "";
+        let paStatus = paActive ? " [PA System Engaged]" : "";
+
+        banner.innerText = '🔴 PACKAGE TRANSMITTED (< 3s): ' + finalDetails + photoStatus + paStatus;
         threatPanel.style.display = 'none';
 
         if (window.pushToDatabase) {
-            window.pushToDatabase('RED', finalDetails);
+            window.pushToDatabase('RED', finalDetails, paActive, attachedPhotoData);
         }
     }
 
     function cancelRedAlert() {
+        if (isRecording && recognition) {
+            recognition.stop();
+        }
         threatPanel.style.display = 'none';
+        paActive = false;
+        attachedPhotoData = null;
+        previewContainer.style.display = 'none';
         banner.innerText = 'SYSTEM LOCKED & READY: Standby.';
     }
 
@@ -322,10 +482,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.pushToDatabase = function(level, details = '') {
+        window.pushToDatabase = function(level, details = '', pa = false, photo = null) {
             set(ref(db, 'alerts/current'), {
                 level: level,
                 details: details,
+                paBroadcast: pa,
+                hasPhoto: photo !== null,
                 timestamp: Date.now(),
                 source: 'Master Dispatch Grid'
             }).catch((error) => {
