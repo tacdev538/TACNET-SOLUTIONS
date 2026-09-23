@@ -25,7 +25,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
         }
 
@@ -41,13 +41,13 @@
         header h1 {
             margin: 0;
             color: var(--command-blue);
-            font-size: 22px;
+            font-size: 24px;
             letter-spacing: 1px;
         }
 
         header p {
             margin: 5px 0 0 0;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-muted);
         }
 
@@ -55,10 +55,11 @@
             display: flex;
             justify-content: space-between;
             background-color: var(--panel-blue);
-            padding: 10px 15px;
+            padding: 12px 18px;
             border-radius: 6px;
             font-size: 13px;
             margin-bottom: 20px;
+            border-left: 4px solid var(--secure-green);
         }
 
         .grid {
@@ -77,6 +78,7 @@
             border-radius: 8px;
             padding: 20px;
             border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
         }
 
         .card h3 {
@@ -122,29 +124,49 @@
             margin-top: 10px;
         }
 
-        .room-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+        .fleet-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 10px;
+            font-size: 13px;
         }
 
-        .room-badge {
-            background: var(--bg-slate);
-            padding: 8px;
-            text-align: center;
-            border-radius: 4px;
-            border: 1px solid var(--secure-green);
-            font-size: 12px;
+        .fleet-table th, .fleet-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .fleet-table th {
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .dot {
+            height: 10px;
+            width: 10px;
+            background-color: var(--secure-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--secure-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
         }
 
         .disclaimer {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-muted);
             text-align: center;
             margin-top: 30px;
             border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 10px;
+            padding-top: 15px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -157,58 +179,94 @@
     </header>
 
     <div class="status-bar">
-        <span>🟢 SYSTEM: <strong style="color: var(--secure-green);">ONLINE & LINKED</strong></span>
-        <span>ROLE: <strong style="color: var(--command-blue);">School / Command Center</strong></span>
+        <span>SYSTEM STATUS: <strong style="color: var(--secure-green);">ONLINE (Sub-second Dispatch Active)</strong></span>
+        <span>LOCATION: <strong style="color: var(--command-blue);">Amherst County Operations</strong></span>
     </div>
 
     <div class="grid">
+        <!-- Emergency Red Alert Panel -->
         <div class="card" style="border-top: 4px solid var(--alert-red);">
             <h3 style="color: var(--alert-red);">🔴 Emergency Red Alert</h3>
-            <p style="font-size: 12px; color: var(--text-muted);">Instant sub-second notification to Law Enforcement and facility personnel.</p>
+            <p style="font-size: 12px; color: var(--text-muted);">Instant broadcast to School Administration & Law Enforcement.</p>
             <button class="btn-red" onclick="triggerRedAlert()">TRIGGER RED ALERT</button>
         </div>
 
+        <!-- Communications & Status Channels -->
         <div class="card" style="border-top: 4px solid var(--alert-amber);">
-            <h3 style="color: var(--alert-amber);">🟠 Orange Channel & Status</h3>
-            <p style="font-size: 12px; color: var(--text-muted);">Non-emergency general staff coordination & bus fleet overview.</p>
-            <button class="btn-orange" onclick="openChannel('Orange')">Open General Channel</button>
-            <button class="btn-green" onclick="resetSystem()">🟢 Reset / Secure All (Green)</button>
+            <h3 style="color: var(--alert-amber);">🟠 Mutual / General Coordination</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">Non-emergency operational channel & zone clearance controls.</p>
+            <button class="btn-orange" onclick="openChannel()">Open General Channel</button>
+            <button class="btn-green" onclick="resetSystem()">🟢 All Secure / Reset (Green)</button>
         </div>
     </div>
 
-    <div class="card">
-        <h3>Live Facility & Bus Fleet Telemetry</h3>
-        <p style="font-size: 12px; color: var(--text-muted);">Classrooms & Numbered Buses Live Monitoring Grid</p>
-        <div class="room-grid">
-            <div class="room-badge">Rm 120: <span style="color:var(--secure-green)">Secure</span></div>
-            <div class="room-badge">Rm 121: <span style="color:var(--secure-green)">Secure</span></div>
-            <div class="room-badge">Rm 122: <span style="color:var(--secure-green)">Secure</span></div>
-            <div class="room-badge">Bus 04: <span style="color:var(--secure-green)">Active GPS</span></div>
-            <div class="room-badge">Bus 12: <span style="color:var(--secure-green)">Active GPS</span></div>
-            <div class="room-badge">Bus 18: <span style="color:var(--secure-green)">Active GPS</span></div>
-        </div>
+    <!-- Live Bus Fleet & GPS Monitoring Card -->
+    <div class="card" style="border-top: 4px solid var(--command-blue);">
+        <h3 style="color: var(--command-blue);">🚌 Live School Bus Fleet & GPS Command Grid</h3>
+        <p style="font-size: 12px; color: var(--text-muted);">Real-time tracking of signed-in drivers, routes, and active map pins.</p>
+        
+        <table class="fleet-table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Bus #</th>
+                    <th>Driver Name</th>
+                    <th>Active Route</th>
+                    <th>GPS Feed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="dot"></span></td>
+                    <td><strong>Bus 04</strong></td>
+                    <td>J. Miller</td>
+                    <td>Route 12 - North County</td>
+                    <td style="color: var(--secure-green);">Live Tracking OK</td>
+                </tr>
+                <tr>
+                    <td><span class="dot"></span></td>
+                    <td><strong>Bus 12</strong></td>
+                    <td>R. Davis</td>
+                    <td>Route 05 - Town Center</td>
+                    <td style="color: var(--secure-green);">Live Tracking OK</td>
+                </tr>
+                <tr>
+                    <td><span class="dot"></span></td>
+                    <td><strong>Bus 18</strong></td>
+                    <td>T. Vance</td>
+                    <td>Route 22 - West Highway</td>
+                    <td style="color: var(--secure-green);">Live Tracking OK</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
+    <!-- Legal Disclaimer -->
     <div class="disclaimer">
-        DISCLAIMER: TACNET Solutions is designed to assist emergency coordination. Users must verify local operational policies. Created by Earl Wood. All rights reserved.
+        <strong>LEGAL DISCLAIMER:</strong> TACNET Solutions is designed as an emergency notification and situational awareness aid for authorized law enforcement, school personnel, and transport fleets. Created by retired Deputy Sheriff Earl Wood, Virginia. Users agree to operate in accordance with local agency protocols and statutory requirements. All rights reserved.
     </div>
 </div>
 
 <script>
     function triggerRedAlert() {
-        let threatDesc = prompt("RED ALERT ACTIVATED!\nEnter threat description (e.g., White male, green jacket, hoodie):");
-        if(threatDesc) {
-            alert("ALERT BROADCASTED TO LAW ENFORCEMENT:\n" + threatDesc);
+        let threatDesc = prompt("🔴 RED ALERT ACTIVATED!\nEnter voice-to-text threat description (e.g., 'Active threat on west side, white male, green jacket'):");
+        if(threatDesc !== null) {
+            let suspectPhoto = confirm("Select Suspect Photo / Visual Profile to push with alert package?");
+            if(suspectPhoto) {
+                alert("🚨 COMPLETE TACTICAL PACKAGE SENT!\n- Threat Description: " + threatDesc + "\n- Suspect Photo Attached\n- Law Enforcement & Office Notified Instantly.");
+            } else {
+                alert("🚨 ALERT SENT WITHOUT PHOTO:\n- Threat Description: " + threatDesc + "\n- Law Enforcement Notified.");
+            }
         }
     }
 
-    function openChannel(channel) {
-        alert("Switching to " + channel + " communications channel.");
+    function openChannel() {
+        alert("Switched to Orange Non-Emergency Coordination Channel.");
     }
 
     function resetSystem() {
         if(confirm("Reset all zones and buses to Secure (Green)?")) {
-            alert("System reset to All Clear.");
+            alert("🟢 System status cleared. All locations marked secure.");
         }
     }
 </script>
