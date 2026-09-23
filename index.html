@@ -10,18 +10,18 @@
     
     <style>
         :root {
-            --bg-slate: #0B132B;
-            --panel-blue: #1C2541;
-            --command-blue: #3A86FF;
-            --alert-red: #FF3333;
-            --alert-amber: #FFB703;
-            --secure-green: #38B000;
+            --bg-royal: #1E3A8A; /* Royal Blue Background */
+            --panel-blue: #1E40AF; /* Slightly lighter royal panel */
+            --command-blue: #60A5FA;
+            --alert-red: #EF4444;
+            --alert-amber: #F59E0B;
+            --secure-green: #10B981;
             --text-light: #FFFFFF;
-            --text-muted: #8D99AE;
+            --text-muted: #CBD5E1;
         }
 
         body {
-            background-color: var(--bg-slate);
+            background-color: var(--bg-royal);
             color: var(--text-light);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
@@ -40,11 +40,12 @@
             border-radius: 8px;
             text-align: center;
             margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         header h1 {
             margin: 0;
-            color: var(--command-blue);
+            color: var(--text-light);
             font-size: 24px;
             letter-spacing: 1px;
         }
@@ -64,14 +65,16 @@
             font-size: 13px;
             margin-bottom: 20px;
             border-left: 4px solid var(--secure-green);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .card {
             background-color: var(--panel-blue);
             border-radius: 8px;
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
             margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .card h3 {
@@ -92,7 +95,7 @@
         }
 
         .zone-btn {
-            background-color: #0B132B;
+            background-color: #172554;
             border: 2px solid var(--command-blue);
             color: var(--text-light);
             padding: 15px;
@@ -105,12 +108,12 @@
 
         .zone-btn.selected {
             background-color: var(--command-blue);
-            color: white;
-            box-shadow: 0 0 12px rgba(58, 134, 255, 0.6);
+            color: #1E3A8A;
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.8);
         }
 
         .btn-red {
-            background: linear-gradient(135deg, #FF3333, #C9184A);
+            background: linear-gradient(135deg, #EF4444, #991B1B);
             color: white;
             border: none;
             padding: 20px;
@@ -119,7 +122,7 @@
             font-weight: bold;
             font-size: 18px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
         }
 
         .action-grid {
@@ -135,7 +138,7 @@
 
         .btn-orange {
             background-color: var(--alert-amber);
-            color: var(--bg-slate);
+            color: #1E3A8A;
             border: none;
             padding: 14px;
             width: 100%;
@@ -169,7 +172,7 @@
         .fleet-table th, .fleet-table td {
             padding: 10px;
             text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.15);
         }
 
         .fleet-table th {
@@ -199,7 +202,7 @@
             color: var(--text-muted);
             text-align: center;
             margin-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255,255,255,0.15);
             padding-top: 15px;
             line-height: 1.4;
         }
@@ -218,7 +221,7 @@
         <span>LOCATION: <strong style="color: var(--command-blue);">Amherst County Operations</strong></span>
     </div>
 
-    <!-- STEP 1: SELECT ZONE, THEN STEP 2: TRIGGER RED ALERT -->
+    <!-- ZONE SELECTOR & RED ALERT -->
     <div class="card" style="border-top: 4px solid var(--alert-red);">
         <h3 style="color: var(--alert-red);">🔴 STEP 1: SELECT ZONE & TRIGGER EMERGENCY</h3>
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Tap your current zone, then press Red Alert for instant location dispatch.</p>
@@ -315,12 +318,10 @@
 
     function selectZone(zoneName) {
         selectedCurrentZone = zoneName;
-        // Remove highlight from all
         document.getElementById('zone-MAIN').classList.remove('selected');
         document.getElementById('zone-CAF').classList.remove('selected');
         document.getElementById('zone-GYM').classList.remove('selected');
         
-        // Highlight chosen one
         document.getElementById('zone-' + zoneName).classList.add('selected');
         console.log("Zone selected: " + zoneName);
     }
@@ -336,10 +337,8 @@
         }
     });
 
-    // INSTANT ONE-TAP RED ALERT WITH ZONE LOCATION
     function triggerRedAlert() {
         if (selectedCurrentZone === "NONE") {
-            // Default to MAIN if none tapped, ensuring zero delay
             selectedCurrentZone = "MAIN (Default)";
         }
 
