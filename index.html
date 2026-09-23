@@ -77,7 +77,6 @@
             font-weight: bold;
         }
 
-        /* Map Styling */
         #map {
             height: 350px;
             width: 100%;
@@ -115,7 +114,7 @@
     <div class="panel">
         <h2>Emergency & Operations Control</h2>
         <div class="alert-grid">
-            <button class="btn-alert btn-red" onclick="sendInstantSignal('RED')">🔴 RED ALERT<br><span style="font-size:12px; font-weight:normal;">Instant Emergency Dispatch</span></button>
+            <button class="btn-alert btn-red" onclick="triggerRedAlertWorkflow()">🔴 RED ALERT<br><span style="font-size:12px; font-weight:normal;">Instant Emergency Dispatch</span></button>
             <button class="btn-alert btn-orange" onclick="sendInstantSignal('ORANGE')">🟠 ORANGE CHANNEL<br><span style="font-size:12px; font-weight:normal;">General Coordination</span></button>
             <button class="btn-alert btn-green" onclick="sendInstantSignal('GREEN')">🟢 GREEN STATUS<br><span style="font-size:12px; font-weight:normal;">All Clear / Secure</span></button>
         </div>
@@ -169,7 +168,6 @@
 <script>
     const banner = document.getElementById('status-banner');
 
-    // Initialize Map centered roughly over Amherst County area
     const map = L.map('map').setView([37.5858, -79.0503], 12);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -177,18 +175,40 @@
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Sample Bus Markers on Map
     const bus104Marker = L.marker([37.5958, -79.0603]).addTo(map).bindPopup('<b>Bus 104</b><br>Driver: J. Miller<br>Status: Secure');
     const bus112Marker = L.marker([37.5758, -79.0403]).addTo(map).bindPopup('<b>Bus 112</b><br>Driver: R. Davis<br>Status: Secure');
 
+    // Full Red Alert Workflow: Instant Alert + Threat Description + Photo Package
+    function triggerRedAlertWorkflow() {
+        banner.style.borderColor = '#d9534f';
+        banner.style.color = '#d9534f';
+        banner.innerText = '🔴 RED ALERT DISPATCHED! Entering threat details...';
+
+        // Step 1: Prompt for Description (Speech / Text box)
+        setTimeout(() => {
+            let threatDesc = prompt("🚨 RED ALERT ACTIVE!\nEnter threat description (e.g., White male, green jacket, hoodie):", "Active shooter / threat identified");
+            
+            if(threatDesc) {
+                // Step 2: Prompt for Photo confirmation / upload reference
+                let photoConfirm = confirm("Threat Description Saved: '" + threatDesc + "'\n\nWould you like to attach/select suspect photo evidence to broadcast to Law Enforcement now?");
+                
+                if(photoConfirm) {
+                    banner.innerText = '🔴 RED ALERT FULL PACKAGE SENT: Threat description & photo broadcasted to Law Enforcement & School Command.';
+                } else {
+                    banner.innerText = '🔴 RED ALERT SENT: Description broadcasted (No photo attached).';
+                }
+            } else {
+                banner.innerText = '🔴 RED ALERT SENT (Emergency broadcast active).';
+            }
+        }, 200);
+
+        if (window.pushToDatabase) {
+            window.pushToDatabase('RED');
+        }
+    }
+
     function sendInstantSignal(level) {
-        if(level === 'RED') {
-            banner.style.borderColor = '#d9534f';
-            banner.style.color = '#d9534f';
-            banner.innerText = '🔴 RED ALERT BROADCASTED INSTANTLY TO LAW ENFORCEMENT & SCHOOLS.';
-            // Flash map marker red on emergency
-            bus104Marker.openPopup();
-        } else if(level === 'ORANGE') {
+        if(level === 'ORANGE') {
             banner.style.borderColor = '#f0ad4e';
             banner.style.color = '#f0ad4e';
             banner.innerText = '🟠 ORANGE CHANNEL OPENED FOR MUTUAL COORDINATION.';
