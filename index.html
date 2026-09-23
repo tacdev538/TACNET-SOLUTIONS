@@ -155,7 +155,7 @@
         <div class="subtitle" style="color: #cbd5e1; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
     </header>
 
-    <div id="status-banner">SYSTEM READY: Tap any status button for instant broadcast.</div>
+    <div id="status-banner">SYSTEM LOCKED & READY: Tap any status button for instant broadcast.</div>
 
     <!-- Emergency Action Panel -->
     <div class="panel">
@@ -167,7 +167,7 @@
         </div>
     </div>
 
-    <!-- Built-in Tactical Threat Panel (Replaces white pop-up boxes) -->
+    <!-- Built-in Tactical Threat Panel -->
     <div id="threat-panel">
         <h3 style="color: var(--red-alert); margin-top: 0;">🚨 ACTIVE RED ALERT - SELECT THREAT DETAILS</h3>
         <p style="font-size: 12px; color: #94a3b8; margin: 5px 0;">Tap quick-select squares or speak/type description below before transmitting to Law Enforcement.</p>
@@ -281,7 +281,7 @@
 
     function cancelRedAlert() {
         threatPanel.style.display = 'none';
-        banner.innerText = 'SYSTEM READY: Standby.';
+        banner.innerText = 'SYSTEM LOCKED & READY: Standby.';
     }
 
     function sendInstantSignal(level) {
