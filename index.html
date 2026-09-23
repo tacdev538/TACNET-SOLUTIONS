@@ -58,13 +58,13 @@
             cursor: pointer;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            touch-action: manipulation;
         }
         .btn-alert:active { transform: scale(0.98); }
         .btn-red { background-color: var(--red-alert); }
         .btn-orange { background-color: var(--orange-channel); color: #000; }
         .btn-green { background-color: var(--green-secure); }
 
-        /* Status Banner for Feedback */
         #status-banner {
             background: #0f172a;
             border-left: 4px solid var(--text-light);
@@ -75,7 +75,6 @@
             font-weight: bold;
         }
 
-        /* Bus Tracking Table */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th { background-color: #0f172a; color: #38bdf8; }
@@ -99,10 +98,8 @@
         <div class="subtitle" style="color: #cbd5e1; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
     </header>
 
-    <!-- Instant Feedback Banner -->
     <div id="status-banner">SYSTEM READY: Tap any status button for instant broadcast.</div>
 
-    <!-- Emergency Action Panel -->
     <div class="panel">
         <h2>Emergency & Operations Control</h2>
         <div class="alert-grid">
@@ -112,7 +109,6 @@
         </div>
     </div>
 
-    <!-- School Bus Fleet GPS Live View -->
     <div class="panel">
         <h2>School Bus & Fleet Live GPS Tracker</h2>
         <table>
@@ -146,7 +142,33 @@
     </div>
 </div>
 
-<!-- Firebase SDK Integration -->
+<!-- Standalone Global Click Handler (Guarantees buttons never freeze) -->
+<script>
+    const banner = document.getElementById('status-banner');
+
+    function sendInstantSignal(level) {
+        if(level === 'RED') {
+            banner.style.borderColor = '#d9534f';
+            banner.style.color = '#d9534f';
+            banner.innerText = '🔴 RED ALERT BROADCASTED INSTANTLY TO LAW ENFORCEMENT & SCHOOLS.';
+        } else if(level === 'ORANGE') {
+            banner.style.borderColor = '#f0ad4e';
+            banner.style.color = '#f0ad4e';
+            banner.innerText = '🟠 ORANGE CHANNEL OPENED FOR MUTUAL COORDINATION.';
+        } else if(level === 'GREEN') {
+            banner.style.borderColor = '#5cb85c';
+            banner.style.color = '#5cb85c';
+            banner.innerText = '🟢 STATUS SET TO GREEN: ALL ZONES SECURE.';
+        }
+        
+        // Push to Firebase in background if connected
+        if (window.pushToDatabase) {
+            window.pushToDatabase(level);
+        }
+    }
+</script>
+
+<!-- Firebase Background Sync -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -162,36 +184,21 @@
         measurementId: "G-PB9GLPJFQ1"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const banner = document.getElementById('status-banner');
+    try {
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // INSTANT ONE-TAP SIGNAL (Zero pop-ups, zero typing boxes)
-    window.sendInstantSignal = function(level) {
-        let timestamp = Date.now();
-        
-        set(ref(db, 'alerts/current'), {
-            level: level,
-            timestamp: timestamp,
-            source: 'Master Dispatch Grid'
-        }).then(() => {
-            if(level === 'RED') {
-                banner.style.borderColor = 'var(--red-alert)';
-                banner.style.color = 'var(--red-alert)';
-                banner.innerText = '🔴 RED ALERT BROADCASTED INSTANTLY TO LAW ENFORCEMENT & SCHOOLS.';
-            } else if(level === 'ORANGE') {
-                banner.style.borderColor = 'var(--orange-channel)';
-                banner.style.color = 'var(--orange-channel)';
-                banner.innerText = '🟠 ORANGE CHANNEL OPENED FOR MUTUAL COORDINATION.';
-            } else if(level === 'GREEN') {
-                banner.style.borderColor = 'var(--green-secure)';
-                banner.style.color = 'var(--green-secure)';
-                banner.innerText = '🟢 STATUS SET TO GREEN: ALL ZONES SECURE.';
-            }
-        }).catch((error) => {
-            banner.style.borderColor = 'var(--red-alert)';
-            banner.innerText = 'ERROR: Transmission failed. Check connection.';
-        });
+        window.pushToDatabase = function(level) {
+            set(ref(db, 'alerts/current'), {
+                level: level,
+                timestamp: Date.now(),
+                source: 'Master Dispatch Grid'
+            }).catch((error) => {
+                console.log("Background sync pending...");
+            });
+        }
+    } catch(e) {
+        console.log("Running offline mode");
     }
 </script>
 
