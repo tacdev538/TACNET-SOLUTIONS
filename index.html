@@ -159,6 +159,65 @@
             100% { transform: scale(0.95); opacity: 0.8; }
         }
 
+        /* Modal Overlay for Suspect Photo Selection */
+        #alertModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 19, 43, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: var(--panel-blue);
+            border: 2px solid var(--alert-red);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: var(--alert-red);
+            margin-top: 0;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .photo-option {
+            background: #0B132B;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .photo-option:hover {
+            border-color: var(--command-blue);
+        }
+
+        .photo-option img {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            background: #333;
+        }
+
         .disclaimer {
             font-size: 11px;
             color: var(--text-muted);
@@ -247,17 +306,49 @@
     </div>
 </div>
 
+<!-- Suspect Photo Selection Modal Popup -->
+<div id="alertModal">
+    <div class="modal-content">
+        <h2>🔴 RED ALERT ACTIVE</h2>
+        <p style="font-size: 13px; color: var(--text-muted);">Threat description captured. Now tap a matching suspect visual profile or upload snapshot to attach to law enforcement package:</p>
+        
+        <div class="photo-grid">
+            <div class="photo-option" onclick="selectPhoto('Green Jacket / Hoodie')">
+                <div style="height:70px; background:#1C2541; display:flex; align-items:center; justify-content:center; color:#3A86FF; font-weight:bold; border-radius:4px; margin-bottom:5px;">JACKET</div>
+                Green Jacket
+            </div>
+            <div class="photo-option" onclick="selectPhoto('Dark Hooded Sweatshirt')">
+                <div style="height:70px; background:#1C2541; display:flex; align-items:center; justify-content:center; color:#3A86FF; font-weight:bold; border-radius:4px; margin-bottom:5px;">HOODIE</div>
+                Dark Hoodie
+            </div>
+            <div class="photo-option" onclick="selectPhoto('Camera / Live Capture')">
+                <div style="height:70px; background:#3A86FF; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; border-radius:4px; margin-bottom:5px;">📷 SNAP</div>
+                Live Camera
+            </div>
+        </div>
+
+        <button class="btn-green" onclick="cancelAlert()" style="background:#4A5568; margin-top:10px;">Cancel / Close</button>
+    </div>
+</div>
+
 <script>
+    let activeThreat = "";
+
     function triggerRedAlert() {
-        let threatDesc = prompt("🔴 RED ALERT ACTIVATED!\nEnter voice-to-text threat description (e.g., 'Active threat on west side, white male, green jacket'):");
-        if(threatDesc !== null) {
-            let suspectPhoto = confirm("Select Suspect Photo / Visual Profile to push with alert package?");
-            if(suspectPhoto) {
-                alert("🚨 COMPLETE TACTICAL PACKAGE SENT!\n- Threat Description: " + threatDesc + "\n- Suspect Photo Attached\n- Law Enforcement & Office Notified Instantly.");
-            } else {
-                alert("🚨 ALERT SENT WITHOUT PHOTO:\n- Threat Description: " + threatDesc + "\n- Law Enforcement Notified.");
-            }
+        activeThreat = prompt("Enter voice-to-text threat description (e.g., 'Active threat on west side'):");
+        if(activeThreat !== null && activeThreat.trim() !== "") {
+            // Show the suspect photo modal selection box
+            document.getElementById('alertModal').style.display = 'flex';
         }
+    }
+
+    function selectPhoto(photoType) {
+        document.getElementById('alertModal').style.display = 'none';
+        alert("🚨 FULL TACTICAL PACKAGE DISPATCHED!\n\n- Threat: " + activeThreat + "\n- Visual Profile: " + photoType + "\n- Law Enforcement & Office Notified Instantly.");
+    }
+
+    function cancelAlert() {
+        document.getElementById('alertModal').style.display = 'none';
     }
 
     function openChannel() {
