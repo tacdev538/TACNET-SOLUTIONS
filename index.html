@@ -125,6 +125,60 @@
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
         }
 
+        /* Modal Overlay for Instant Threat Description */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-card {
+            background-color: #1E40AF;
+            border: 3px solid var(--alert-red);
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        .modal-card h2 {
+            color: var(--alert-red);
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .threat-input {
+            width: 100%;
+            padding: 12px;
+            background: #172554;
+            border: 2px solid var(--command-blue);
+            color: white;
+            border-radius: 6px;
+            font-size: 15px;
+            margin: 15px 0;
+            box-sizing: border-box;
+        }
+
+        .btn-submit-threat {
+            background-color: var(--secure-green);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         .action-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -235,6 +289,16 @@
         <button class="btn-red" onclick="triggerRedAlert()">🚨 TRIGGER RED ALERT (INSTANT DISPATCH)</button>
     </div>
 
+    <!-- AUTOMATED THREAT DESCRIPTION POPUP MODAL -->
+    <div id="threatModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>🚨 RED ALERT DISPATCHED!</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Zone locked in. Please provide a quick threat description or voice-to-text details for responders:</p>
+            <input type="text" id="threatDescriptionInput" class="threat-input" placeholder="e.g., White male, green jacket, firearm visible...">
+            <button class="btn-submit-threat" onclick="submitThreatDetails()">SEND DESCRIPTION TO LAW ENFORCEMENT</button>
+        </div>
+    </div>
+
     <div class="action-grid">
         <!-- Communications Channel -->
         <div class="card" style="border-top: 4px solid var(--alert-amber); margin-bottom: 0;">
@@ -315,6 +379,7 @@
     const database = firebase.database();
 
     let selectedCurrentZone = "NONE";
+    let activeAlertKey = null;
 
     function selectZone(zoneName) {
         selectedCurrentZone = zoneName;
@@ -323,7 +388,6 @@
         document.getElementById('zone-GYM').classList.remove('selected');
         
         document.getElementById('zone-' + zoneName).classList.add('selected');
-        console.log("Zone selected: " + zoneName);
     }
 
     const dbStatusRef = document.getElementById("db-status");
@@ -342,13 +406,31 @@
             selectedCurrentZone = "MAIN (Default)";
         }
 
-        database.ref('alerts').push({
+        // Push initial alert instantly to database
+        const newAlertRef = database.ref('alerts').push({
             type: 'RED ALERT',
             zone: selectedCurrentZone,
+            description: 'Pending description...',
             status: 'ACTIVE EMERGENCY',
             timestamp: Date.now()
         });
-        console.log("🔴 Red Alert Broadcasted for Zone: " + selectedCurrentZone);
+
+        activeAlertKey = newAlertRef.key;
+
+        // Instantly pop open the description prompt for the teacher/driver
+        document.getElementById('threatModal').style.display = 'flex';
+    }
+
+    function submitThreatDetails() {
+        const descText = document.getElementById('threatDescriptionInput').value;
+        if (activeAlertKey && descText.trim() !== "") {
+            database.ref('alerts/' + activeAlertKey).update({
+                description: descText
+            });
+        }
+        // Close modal
+        document.getElementById('threatModal').style.display = 'none';
+        document.getElementById('threatDescriptionInput').value = "";
     }
 
     function openChannel() {
@@ -363,6 +445,7 @@
         database.ref('alerts').remove();
         database.ref('comms').remove();
         selectedCurrentZone = "NONE";
+        activeAlertKey = null;
         document.getElementById('zone-MAIN').classList.remove('selected');
         document.getElementById('zone-CAF').classList.remove('selected');
         document.getElementById('zone-GYM').classList.remove('selected');
