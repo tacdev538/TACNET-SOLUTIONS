@@ -90,11 +90,11 @@
             background: linear-gradient(135deg, #FF3333, #C9184A);
             color: white;
             border: none;
-            padding: 18px;
+            padding: 16px;
             width: 100%;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 51, 51, 0.5);
             margin-top: 8px;
@@ -106,7 +106,7 @@
             background-color: var(--alert-amber);
             color: var(--bg-slate);
             border: none;
-            padding: 10px;
+            padding: 12px;
             width: 100%;
             border-radius: 6px;
             font-weight: bold;
@@ -118,7 +118,7 @@
             background-color: var(--secure-green);
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             width: 100%;
             border-radius: 6px;
             font-weight: bold;
@@ -129,23 +129,29 @@
         .room-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 8px;
+            gap: 10px;
             margin-top: 10px;
         }
 
         .room-badge {
             background: #0B132B;
-            border: 1px solid var(--secure-green);
+            border: 2px solid var(--secure-green);
             border-radius: 6px;
-            padding: 10px;
+            padding: 12px 8px;
             text-align: center;
             font-size: 12px;
             font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .room-badge:active {
+            transform: scale(0.95);
         }
 
         .room-badge.alert {
             border-color: var(--alert-red);
-            background: rgba(255, 51, 51, 0.15);
+            background: rgba(255, 51, 51, 0.2);
             color: var(--alert-red);
             animation: pulse 1s infinite;
         }
@@ -226,7 +232,7 @@
         }
 
         .photo-box-icon {
-            height: 60px; 
+            height: 55px; 
             background: #1C2541; 
             display: flex; 
             align-items: center; 
@@ -266,30 +272,30 @@
         <div class="card" style="border-top: 4px solid var(--alert-red);">
             <h3 style="color: var(--alert-red);">🔴 Emergency Red Alert</h3>
             <p style="font-size: 11px; color: var(--text-muted);">Instant sub-second broadcast & threat selection.</p>
-            <button class="btn-red" onclick="triggerRedAlert()">🚨 TRIGGER RED ALERT</button>
+            <button class="btn-red" onclick="triggerGlobalAlert()">🚨 TRIGGER FACILITY ALERT</button>
         </div>
 
         <div class="card" style="border-top: 4px solid var(--alert-amber);">
             <h3 style="color: var(--alert-amber);">🟠 Coordination & Reset</h3>
             <p style="font-size: 11px; color: var(--text-muted);">Non-emergency channel & zone controls.</p>
             <button class="btn-orange" onclick="openChannel()">Open General Channel</button>
-            <button class="btn-green" onclick="resetSystem()">🟢 All Secure / Reset</button>
+            <button class="btn-green" onclick="resetAllRooms()">🟢 All Secure / Reset All</button>
         </div>
     </div>
 
-    <!-- NEW: 7 Classrooms Status Grid -->
+    <!-- Interactive 7 Classrooms Status Grid -->
     <div class="card" style="border-top: 4px solid var(--command-blue);">
-        <h3 style="color: var(--command-blue);">🏫 School Facility - 7 Rooms Status</h3>
-        <p style="font-size: 11px; color: var(--text-muted);">Real-time mirror of downstairs and upstairs classroom LEDs.</p>
+        <h3 style="color: var(--command-blue);">🏫 School Facility - 7 Rooms Control & Status</h3>
+        <p style="font-size: 11px; color: var(--text-muted);">Tap any room badge below to toggle between Secure (Green) and Alert (Red).</p>
         
         <div class="room-grid">
-            <div class="room-badge" id="room-120">Rm 120<br><span style="color:var(--secure-green);">SECURE</span></div>
-            <div class="room-badge" id="room-121">Rm 121<br><span style="color:var(--secure-green);">SECURE</span></div>
-            <div class="room-badge" id="room-122">Rm 122<br><span style="color:var(--secure-green);">SECURE</span></div>
-            <div class="room-badge" id="room-200">Rm 200<br><span style="color:var(--secure-green);">SECURE</span></div>
-            <div class="room-badge" id="room-201">Rm 201<br><span style="color:var(--secure-green);">SECURE</span></div>
-            <div class="room-badge" id="room-202">Rm 202<br><span style="color:var(--secure-green);">SECURE</span></div>
-            <div class="room-badge" id="room-203">Rm 203<br><span style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-120" onclick="toggleRoom('120')">Rm 120<br><span id="txt-120" style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-121" onclick="toggleRoom('121')">Rm 121<br><span id="txt-121" style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-122" onclick="toggleRoom('122')">Rm 122<br><span id="txt-122" style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-200" onclick="toggleRoom('200')">Rm 200<br><span id="txt-200" style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-201" onclick="toggleRoom('201')">Rm 201<br><span id="txt-201" style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-202" onclick="toggleRoom('202')">Rm 202<br><span id="txt-202" style="color:var(--secure-green);">SECURE</span></div>
+            <div class="room-badge" id="room-203" onclick="toggleRoom('203')">Rm 203<br><span id="txt-203" style="color:var(--secure-green);">SECURE</span></div>
         </div>
     </div>
 
@@ -321,7 +327,7 @@
 <div id="alertModal">
     <div class="modal-content">
         <h2 style="color: var(--alert-red); margin-top:0; font-size:20px;">🚨 RED ALERT ACTIVE</h2>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Signal sent to Law Enforcement & Command.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Signal broadcasted to Law Enforcement & Command.</p>
         
         <div class="photo-grid">
             <div class="photo-option" onclick="activateLiveSpeech()" style="border: 2px solid var(--command-blue); background: rgba(58, 134, 255, 0.15);">
@@ -350,19 +356,86 @@
             </div>
         </div>
 
-        <button class="btn-green" onclick="cancelAlert()" style="background:#4A5568; margin-top:0;">Dismiss</button>
+        <button class="btn-green" onclick="closeModal()" style="background:#4A5568; margin-top:0;">Dismiss</button>
     </div>
 </div>
 
 <script>
-    function triggerRedAlert() {
+    let roomStates = {
+        '120': false, '121': false, '122': false,
+        '200': false, '201': false, '202': false, '203': false
+    };
+
+    // Web Audio Siren Generator
+    let audioCtx = null;
+    let sirenOsc = null;
+
+    function playSiren() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (sirenOsc) return; // already playing
+
+        sirenOsc = audioCtx.createOscillator();
+        let gainNode = audioCtx.createGain();
+        
+        sirenOsc.type = 'sawtooth';
+        sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        
+        // Frequency sweep for wail
+        setInterval(() => {
+            if (!sirenOsc) return;
+            let time = audioCtx.currentTime;
+            sirenOsc.frequency.exponentialRampToValueAtTime(1800, time + 0.5);
+            sirenOsc.frequency.exponentialRampToValueAtTime(800, time + 1.0);
+        }, 1000);
+
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        sirenOsc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        sirenOsc.start();
+    }
+
+    function stopSiren() {
+        if (sirenOsc) {
+            sirenOsc.stop();
+            sirenOsc.disconnect();
+            sirenOsc = null;
+        }
+    }
+
+    function toggleRoom(roomNum) {
+        roomStates[roomNum] = !roomStates[roomNum];
+        let el = document.getElementById('room-' + roomNum);
+        let txt = document.getElementById('txt-' + roomNum);
+        
+        if (roomStates[roomNum]) {
+            el.className = 'room-badge alert';
+            txt.innerHTML = 'ALERT';
+            txt.style.color = 'var(--alert-red)';
+            playSiren();
+        } else {
+            el.className = 'room-badge';
+            txt.innerHTML = 'SECURE';
+            txt.style.color = 'var(--secure-green)';
+            
+            // If all rooms are now secure, stop the siren
+            let anyAlerts = Object.values(roomStates).includes(true);
+            if (!anyAlerts) stopSiren();
+        }
+    }
+
+    function triggerGlobalAlert() {
         document.getElementById('alertModal').style.display = 'flex';
-        // Visually trigger all 7 rooms to alert on phone view for testing
+        playSiren();
         let rooms = ['120', '121', '122', '200', '201', '202', '203'];
         rooms.forEach(r => {
+            roomStates[r] = true;
             let el = document.getElementById('room-' + r);
+            let txt = document.getElementById('txt-' + r);
             el.className = 'room-badge alert';
-            el.innerHTML = 'Rm ' + r + '<br><span style="color:var(--alert-red);">ALERT</span>';
+            txt.innerHTML = 'ALERT';
+            txt.style.color = 'var(--alert-red)';
         });
     }
 
@@ -376,7 +449,7 @@
         alert("🚨 TACTICAL PACKAGE DISPATCHED: " + threat);
     }
 
-    function cancelAlert() {
+    function closeModal() {
         document.getElementById('alertModal').style.display = 'none';
     }
 
@@ -384,14 +457,18 @@
         alert("Switched to Orange Non-Emergency Coordination Channel.");
     }
 
-    function resetSystem() {
+    function resetAllRooms() {
+        stopSiren();
         let rooms = ['120', '121', '122', '200', '201', '202', '203'];
         rooms.forEach(r => {
+            roomStates[r] = false;
             let el = document.getElementById('room-' + r);
+            let txt = document.getElementById('txt-' + r);
             el.className = 'room-badge';
-            el.innerHTML = 'Rm ' + r + '<br><span style="color:var(--secure-green);">SECURE</span>';
+            txt.innerHTML = 'SECURE';
+            txt.style.color = 'var(--secure-green)';
         });
-        alert("🟢 System reset. All 7 rooms marked Secure.");
+        alert("🟢 System reset. All 7 rooms marked Secure and audio silenced.");
     }
 </script>
 
