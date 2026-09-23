@@ -11,22 +11,22 @@
             --red-alert: #d9534f;
             --orange-channel: #f0ad4e;
             --green-secure: #5cb85c;
-            --bg-dark: #121824;
-            --panel-bg: #1e293b;
+            --bg-blue: #0b192c; /* Professional Tactical Blue */
+            --panel-bg: #1e3e62;
             --text-light: #f8f9fa;
             --border-color: #334155;
             --accent-blue: #38bdf8;
         }
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--bg-dark);
+            background-color: var(--bg-blue);
             color: var(--text-light);
             margin: 0;
             padding: 20px;
         }
         header {
             text-align: center;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 2px solid #1e3e62;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
@@ -41,6 +41,7 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid #31608d;
         }
         
         .alert-grid {
@@ -70,7 +71,7 @@
 
         #status-banner {
             background: #0f172a;
-            border-left: 4px solid var(--text-light);
+            border-left: 4px solid var(--accent-blue);
             padding: 12px 15px;
             margin-bottom: 20px;
             border-radius: 4px;
@@ -78,23 +79,16 @@
             font-weight: bold;
         }
 
-        /* Tactical Threat Input Box Squares */
-        #threat-panel {
-            display: none;
-            background: #0f172a;
-            border: 2px solid var(--red-alert);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
         .section-label {
             font-size: 12px;
             color: var(--accent-blue);
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 15px;
             margin-bottom: 5px;
             text-transform: uppercase;
         }
+
+        /* Classroom & Tactical Grids */
         .tactical-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -104,25 +98,28 @@
             .tactical-grid { grid-template-columns: repeat(4, 1fr); }
         }
         .tactical-square {
-            background: #1e293b;
-            border: 1px solid var(--border-color);
+            background: #0b192c;
+            border: 1px solid #31608d;
             color: white;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             transition: background 0.2s;
         }
         .tactical-square:hover { background: var(--accent-blue); color: #000; }
-        .tactical-square.selected { background: var(--red-alert); border-color: white; }
+        .tactical-square.selected { background: var(--accent-blue); color: #000; border-color: white; }
+
+        /* Classroom Specific Active Style */
+        .classroom-square.selected { background: var(--red-alert); color: white; border-color: white; }
 
         textarea {
             width: 100%;
-            background: #121824;
+            background: #0b192c;
             color: white;
-            border: 1px solid var(--border-color);
+            border: 1px solid #31608d;
             border-radius: 4px;
             padding: 10px;
             margin-top: 5px;
@@ -140,7 +137,7 @@
         }
 
         .action-btn {
-            background: #334155;
+            background: #0b192c;
             color: white;
             border: 1px solid var(--accent-blue);
             padding: 10px 15px;
@@ -165,27 +162,27 @@
         #photo-preview {
             max-width: 150px;
             border-radius: 4px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #31608d;
         }
 
         #map {
             height: 350px;
             width: 100%;
             border-radius: 6px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #31608d;
             margin-top: 10px;
         }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background-color: #0f172a; color: var(--accent-blue); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #31608d; }
+        th { background-color: #0b192c; color: var(--accent-blue); }
 
         .disclaimer {
             font-size: 11px;
-            color: #64748b;
+            color: #94a3b8;
             text-align: center;
             margin-top: 30px;
-            border-top: 1px solid var(--panel-bg);
+            border-top: 1px solid #1e3e62;
             padding-top: 15px;
         }
     </style>
@@ -199,11 +196,20 @@
         <div class="subtitle" style="color: #cbd5e1; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
     </header>
 
-    <div id="status-banner">SYSTEM LOCKED & READY: Tap any status button for instant broadcast.</div>
+    <div id="status-banner">SYSTEM LOCKED & READY: Select classroom/zone and tap status.</div>
 
     <!-- Emergency Action Panel -->
     <div class="panel">
         <h2>Emergency & Operations Control</h2>
+        
+        <div class="section-label">Select Classroom / Origin Zone First</div>
+        <div class="tactical-grid" style="margin-bottom: 15px;">
+            <div class="tactical-square classroom-square" onclick="selectClassroom(this, 'Room 101')">Room 101</div>
+            <div class="tactical-square classroom-square" onclick="selectClassroom(this, 'Room 102')">Room 102</div>
+            <div class="tactical-square classroom-square" onclick="selectClassroom(this, 'Cafeteria')">Cafeteria</div>
+            <div class="tactical-square classroom-square" onclick="selectClassroom(this, 'Gymnasium')">Gymnasium</div>
+        </div>
+
         <div class="alert-grid">
             <button class="btn-alert btn-red" onclick="openRedAlertPanel()">🔴 RED ALERT<br><span style="font-size:12px; font-weight:normal;">Instant Emergency Dispatch</span></button>
             <button class="btn-alert btn-orange" onclick="sendInstantSignal('ORANGE')">🟠 ORANGE CHANNEL<br><span style="font-size:12px; font-weight:normal;">General Coordination</span></button>
@@ -211,24 +217,25 @@
         </div>
     </div>
 
-    <!-- Built-in Tactical Threat Panel (Sub-3-Second Workflow with Live Voice & Location Grid) -->
-    <div id="threat-panel">
+    <!-- Built-in Tactical Threat Panel (Sub-3-Second Workflow) -->
+    <div id="threat-panel" style="display:none; background: #0b192c; border: 2px solid var(--red-alert); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
         <h3 style="color: var(--red-alert); margin-top: 0;">🚨 ACTIVE RED ALERT - RAPID THREAT PACKAGE</h3>
+        <p id="selected-location-display" style="font-size: 13px; color: var(--accent-blue); font-weight: bold; margin: 5px 0;">Location: None Selected</p>
         
         <div class="section-label">1. Person of Interest Descriptors</div>
         <div class="tactical-grid">
-            <div class="tactical-square" onclick="toggleSquare(this, 'White Male')">White Male</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'Green Jacket')">Green Jacket</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'Hoodie')">Hoodie</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'Armed / Gun')">Armed / Gun</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'White Male')">White Male</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'Green Jacket')">Green Jacket</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'Hoodie')">Hoodie</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'Armed / Gun')">Armed / Gun</div>
         </div>
 
-        <div class="section-label">2. Precise Location / Campus Zone Grid</div>
+        <div class="section-label">2. Campus Directional Zone Grid</div>
         <div class="tactical-grid">
-            <div class="tactical-square" onclick="toggleSquare(this, 'West Side')">West Side</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'Courtyard')">Courtyard</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'Main Entrance')">Main Entrance</div>
-            <div class="tactical-square" onclick="toggleSquare(this, 'North Hall')">North Hall</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'West Side')">West Side</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'Courtyard')">Courtyard</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'Main Entrance')">Main Entrance</div>
+            <div class="tactical-square" onclick="toggleDescriptor(this, 'North Hall')">North Hall</div>
         </div>
 
         <div class="section-label">3. Live Voice & Description Input</div>
@@ -252,7 +259,7 @@
 
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-alert btn-red" style="padding: 12px; font-size: 14px; flex: 2;" onclick="transmitRedAlert()">⚡ TRANSMIT FULL PACKAGE NOW (&lt; 3 SEC)</button>
-            <button class="btn-alert" style="padding: 12px; font-size: 14px; background: #475569; flex: 1;" onclick="cancelRedAlert()">CANCEL</button>
+            <button class="btn-alert" style="padding: 12px; font-size: 14px; background: #334155; flex: 1;" onclick="cancelRedAlert()">CANCEL</button>
         </div>
     </div>
 
@@ -309,13 +316,15 @@
     const photoPreview = document.getElementById('photo-preview');
     const paToggleBtn = document.getElementById('pa-toggle-btn');
     const voiceBtn = document.getElementById('voice-btn');
+    const locationDisplay = document.getElementById('selected-location-display');
 
+    let selectedLocation = "Not Specified";
     let paActive = false;
     let attachedPhotoData = null;
     let recognition = null;
     let isRecording = false;
 
-    // Initialize Web Speech API if supported
+    // Initialize Web Speech API
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
@@ -332,7 +341,6 @@
         };
 
         recognition.onerror = function(event) {
-            console.log("Speech recognition error", event.error);
             stopVoiceRecognition();
         };
 
@@ -341,9 +349,16 @@
         };
     }
 
+    function selectClassroom(element, roomName) {
+        document.querySelectorAll('.classroom-square').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedLocation = roomName;
+        locationDisplay.innerText = "Origin Location: " + selectedLocation;
+    }
+
     function toggleVoiceRecognition() {
         if (!recognition) {
-            alert("Speech recognition is not supported on this browser/device. Please type your description.");
+            alert("Speech recognition is not supported on this browser. Please type description.");
             return;
         }
 
@@ -370,18 +385,18 @@
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    const bus104Marker = L.marker([37.5958, -79.0603]).addTo(map).bindPopup('<b>Bus 104</b><br>Driver: J. Miller<br>Status: Secure');
-    const bus112Marker = L.marker([37.5758, -79.0403]).addTo(map).bindPopup('<b>Bus 112</b><br>Driver: R. Davis<br>Status: Secure');
+    L.marker([37.5958, -79.0603]).addTo(map).bindPopup('<b>Bus 104</b><br>Driver: J. Miller');
+    L.marker([37.5758, -79.0403]).addTo(map).bindPopup('<b>Bus 112</b><br>Driver: R. Davis');
 
     function openRedAlertPanel() {
         banner.style.borderColor = '#d9534f';
         banner.style.color = '#d9534f';
-        banner.innerText = '🔴 RED ALERT INITIATED: Select target grid & speak details.';
+        banner.innerText = '🔴 RED ALERT INITIATED from ' + selectedLocation;
         threatPanel.style.display = 'block';
         threatPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function toggleSquare(element, text) {
+    function toggleDescriptor(element, text) {
         element.classList.toggle('selected');
         let currentText = threatDescBox.value;
         if (element.classList.contains('selected')) {
@@ -411,7 +426,7 @@
             paToggleBtn.style.borderColor = 'white';
             paToggleBtn.innerText = '📢 PA: ACTIVE';
         } else {
-            paToggleBtn.style.background = '#334155';
+            paToggleBtn.style.background = '#0b192c';
             paToggleBtn.style.borderColor = '#38bdf8';
             paToggleBtn.innerText = '📢 PA: OFF';
         }
@@ -421,15 +436,15 @@
         if (isRecording && recognition) {
             recognition.stop();
         }
-        let finalDetails = threatDescBox.value || "Emergency Red Alert Triggered";
+        let finalDetails = threatDescBox.value || "Emergency Red Alert";
         let photoStatus = attachedPhotoData ? " [Photo Attached]" : "";
         let paStatus = paActive ? " [PA System Engaged]" : "";
 
-        banner.innerText = '🔴 PACKAGE TRANSMITTED (< 3s): ' + finalDetails + photoStatus + paStatus;
+        banner.innerText = '🔴 DISPATCHED FROM ' + selectedLocation + ' (< 3s): ' + finalDetails + photoStatus + paStatus;
         threatPanel.style.display = 'none';
 
         if (window.pushToDatabase) {
-            window.pushToDatabase('RED', finalDetails, paActive, attachedPhotoData);
+            window.pushToDatabase('RED', selectedLocation, finalDetails, paActive, attachedPhotoData);
         }
     }
 
@@ -457,7 +472,7 @@
         }
         
         if (window.pushToDatabase) {
-            window.pushToDatabase(level);
+            window.pushToDatabase(level, selectedLocation);
         }
     }
 </script>
@@ -482,9 +497,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.pushToDatabase = function(level, details = '', pa = false, photo = null) {
+        window.pushToDatabase = function(level, location, details = '', pa = false, photo = null) {
             set(ref(db, 'alerts/current'), {
                 level: level,
+                location: location,
                 details: details,
                 paBroadcast: pa,
                 hasPhoto: photo !== null,
