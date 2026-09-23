@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TACNET Solutions - Command Dashboard</title>
+    <!-- Leaflet CSS for Live Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --red-alert: #d9534f;
@@ -75,6 +77,15 @@
             font-weight: bold;
         }
 
+        /* Map Styling */
+        #map {
+            height: 350px;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th { background-color: #0f172a; color: #38bdf8; }
@@ -100,6 +111,7 @@
 
     <div id="status-banner">SYSTEM READY: Tap any status button for instant broadcast.</div>
 
+    <!-- Emergency Action Panel -->
     <div class="panel">
         <h2>Emergency & Operations Control</h2>
         <div class="alert-grid">
@@ -109,8 +121,16 @@
         </div>
     </div>
 
+    <!-- Live GPS Map View -->
     <div class="panel">
-        <h2>School Bus & Fleet Live GPS Tracker</h2>
+        <h2>Live School & Fleet GPS Command Map</h2>
+        <p style="font-size: 13px; color: #94a3b8; margin-top:0;">Real-time asset tracking for school buses and emergency units.</p>
+        <div id="map"></div>
+    </div>
+
+    <!-- School Bus Fleet Table -->
+    <div class="panel">
+        <h2>Active Fleet Directory</h2>
         <table>
             <thead>
                 <tr>
@@ -142,15 +162,32 @@
     </div>
 </div>
 
-<!-- Standalone Global Click Handler (Guarantees buttons never freeze) -->
+<!-- Leaflet JS Map Library -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Button Handler & Map Initialization -->
 <script>
     const banner = document.getElementById('status-banner');
+
+    // Initialize Map centered roughly over Amherst County area
+    const map = L.map('map').setView([37.5858, -79.0503], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Sample Bus Markers on Map
+    const bus104Marker = L.marker([37.5958, -79.0603]).addTo(map).bindPopup('<b>Bus 104</b><br>Driver: J. Miller<br>Status: Secure');
+    const bus112Marker = L.marker([37.5758, -79.0403]).addTo(map).bindPopup('<b>Bus 112</b><br>Driver: R. Davis<br>Status: Secure');
 
     function sendInstantSignal(level) {
         if(level === 'RED') {
             banner.style.borderColor = '#d9534f';
             banner.style.color = '#d9534f';
             banner.innerText = '🔴 RED ALERT BROADCASTED INSTANTLY TO LAW ENFORCEMENT & SCHOOLS.';
+            // Flash map marker red on emergency
+            bus104Marker.openPopup();
         } else if(level === 'ORANGE') {
             banner.style.borderColor = '#f0ad4e';
             banner.style.color = '#f0ad4e';
@@ -161,7 +198,6 @@
             banner.innerText = '🟢 STATUS SET TO GREEN: ALL ZONES SECURE.';
         }
         
-        // Push to Firebase in background if connected
         if (window.pushToDatabase) {
             window.pushToDatabase(level);
         }
