@@ -11,37 +11,41 @@
             --red-alert: #d9534f;
             --orange-channel: #f0ad4e;
             --green-secure: #5cb85c;
-            --bg-blue: #0b192c; /* Professional Tactical Blue */
-            --panel-bg: #1e3e62;
-            --text-light: #f8f9fa;
-            --border-color: #334155;
-            --accent-blue: #38bdf8;
+            --bg-royal-blue: #003366; /* True Royal Blue Background */
+            --panel-royal: #004080;   /* Royal Blue Panels */
+            --text-light: #ffffff;
+            --accent-cyan: #38bdf8;
+            --border-royal: #1a5276;
         }
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--bg-blue);
+            background-color: var(--bg-royal-blue);
             color: var(--text-light);
             margin: 0;
             padding: 20px;
         }
         header {
             text-align: center;
-            border-bottom: 2px solid #1e3e62;
+            border-bottom: 2px solid var(--border-royal);
             padding-bottom: 15px;
             margin-bottom: 20px;
+            background-color: var(--panel-royal);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        h1 { margin: 0; color: var(--accent-blue); font-size: 24px; }
-        .subtitle { font-size: 14px; color: #94a3b8; margin-top: 5px; }
+        h1 { margin: 0; color: var(--accent-cyan); font-size: 26px; letter-spacing: 1px; }
+        .subtitle { font-size: 14px; color: #d0e1fd; margin-top: 5px; }
         
         .container { max-width: 900px; margin: 0 auto; }
         
         .panel {
-            background: var(--panel-bg);
+            background: var(--panel-royal);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            border: 1px solid #31608d;
+            border: 1px solid var(--border-royal);
         }
         
         .alert-grid {
@@ -70,8 +74,8 @@
         .btn-green { background-color: var(--green-secure); }
 
         #status-banner {
-            background: #0f172a;
-            border-left: 4px solid var(--accent-blue);
+            background: #002244;
+            border-left: 4px solid var(--accent-cyan);
             padding: 12px 15px;
             margin-bottom: 20px;
             border-radius: 4px;
@@ -81,7 +85,7 @@
 
         .section-label {
             font-size: 12px;
-            color: var(--accent-blue);
+            color: var(--accent-cyan);
             font-weight: bold;
             margin-top: 15px;
             margin-bottom: 5px;
@@ -98,8 +102,8 @@
             .tactical-grid { grid-template-columns: repeat(4, 1fr); }
         }
         .tactical-square {
-            background: #0b192c;
-            border: 1px solid #31608d;
+            background: #002b5c;
+            border: 1px solid var(--border-royal);
             color: white;
             padding: 12px;
             text-align: center;
@@ -109,17 +113,17 @@
             font-weight: bold;
             transition: background 0.2s;
         }
-        .tactical-square:hover { background: var(--accent-blue); color: #000; }
-        .tactical-square.selected { background: var(--accent-blue); color: #000; border-color: white; }
+        .tactical-square:hover { background: var(--accent-cyan); color: #000; }
+        .tactical-square.selected { background: var(--accent-cyan); color: #000; border-color: white; }
 
         /* Classroom Specific Active Style */
         .classroom-square.selected { background: var(--red-alert); color: white; border-color: white; }
 
         textarea {
             width: 100%;
-            background: #0b192c;
+            background: #002b5c;
             color: white;
-            border: 1px solid #31608d;
+            border: 1px solid var(--border-royal);
             border-radius: 4px;
             padding: 10px;
             margin-top: 5px;
@@ -137,16 +141,16 @@
         }
 
         .action-btn {
-            background: #0b192c;
+            background: #002b5c;
             color: white;
-            border: 1px solid var(--accent-blue);
+            border: 1px solid var(--accent-cyan);
             padding: 10px 15px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             font-size: 13px;
         }
-        .action-btn:hover { background: var(--accent-blue); color: #000; }
+        .action-btn:hover { background: var(--accent-cyan); color: #000; }
         .action-btn.recording { background: var(--red-alert); animation: pulse 1s infinite; }
 
         @keyframes pulse {
@@ -162,27 +166,27 @@
         #photo-preview {
             max-width: 150px;
             border-radius: 4px;
-            border: 1px solid #31608d;
+            border: 1px solid var(--border-royal);
         }
 
         #map {
             height: 350px;
             width: 100%;
             border-radius: 6px;
-            border: 1px solid #31608d;
+            border: 1px solid var(--border-royal);
             margin-top: 10px;
         }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #31608d; }
-        th { background-color: #0b192c; color: var(--accent-blue); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-royal); }
+        th { background-color: #002b5c; color: var(--accent-cyan); }
 
         .disclaimer {
             font-size: 11px;
-            color: #94a3b8;
+            color: #d0e1fd;
             text-align: center;
             margin-top: 30px;
-            border-top: 1px solid #1e3e62;
+            border-top: 1px solid var(--border-royal);
             padding-top: 15px;
         }
     </style>
@@ -193,7 +197,7 @@
     <header>
         <h1>TACNET SOLUTIONS</h1>
         <div class="subtitle">Multi-Agency Emergency Coordination & Fleet Tracking</div>
-        <div class="subtitle" style="color: #cbd5e1; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
+        <div class="subtitle" style="color: #ffffff; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
     </header>
 
     <div id="status-banner">SYSTEM LOCKED & READY: Select classroom/zone and tap status.</div>
@@ -218,9 +222,9 @@
     </div>
 
     <!-- Built-in Tactical Threat Panel (Sub-3-Second Workflow) -->
-    <div id="threat-panel" style="display:none; background: #0b192c; border: 2px solid var(--red-alert); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+    <div id="threat-panel" style="display:none; background: #002244; border: 2px solid var(--red-alert); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
         <h3 style="color: var(--red-alert); margin-top: 0;">🚨 ACTIVE RED ALERT - RAPID THREAT PACKAGE</h3>
-        <p id="selected-location-display" style="font-size: 13px; color: var(--accent-blue); font-weight: bold; margin: 5px 0;">Location: None Selected</p>
+        <p id="selected-location-display" style="font-size: 13px; color: var(--accent-cyan); font-weight: bold; margin: 5px 0;">Location: None Selected</p>
         
         <div class="section-label">1. Person of Interest Descriptors</div>
         <div class="tactical-grid">
@@ -253,20 +257,20 @@
         <textarea id="threat-description" placeholder="Tap 'Speak Now' to dictate live speech or type description here..."></textarea>
 
         <div id="preview-container">
-            <p style="font-size: 11px; color: #38bdf8; margin: 5px 0;">Attached Suspect Photo Preview:</p>
+            <p style="font-size: 11px; color: var(--accent-cyan); margin: 5px 0;">Attached Suspect Photo Preview:</p>
             <img id="photo-preview" src="" alt="Suspect Photo Evidence">
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-alert btn-red" style="padding: 12px; font-size: 14px; flex: 2;" onclick="transmitRedAlert()">⚡ TRANSMIT FULL PACKAGE NOW (&lt; 3 SEC)</button>
-            <button class="btn-alert" style="padding: 12px; font-size: 14px; background: #334155; flex: 1;" onclick="cancelRedAlert()">CANCEL</button>
+            <button class="btn-alert" style="padding: 12px; font-size: 14px; background: #002b5c; flex: 1;" onclick="cancelRedAlert()">CANCEL</button>
         </div>
     </div>
 
     <!-- Live GPS Map View -->
     <div class="panel">
         <h2>Live School & Fleet GPS Command Map</h2>
-        <p style="font-size: 13px; color: #94a3b8; margin-top:0;">Real-time asset tracking for school buses and emergency units.</p>
+        <p style="font-size: 13px; color: #d0e1fd; margin-top:0;">Real-time asset tracking for school buses and emergency units.</p>
         <div id="map"></div>
     </div>
 
@@ -426,7 +430,7 @@
             paToggleBtn.style.borderColor = 'white';
             paToggleBtn.innerText = '📢 PA: ACTIVE';
         } else {
-            paToggleBtn.style.background = '#0b192c';
+            paToggleBtn.style.background = '#002b5c';
             paToggleBtn.style.borderColor = '#38bdf8';
             paToggleBtn.innerText = '📢 PA: OFF';
         }
