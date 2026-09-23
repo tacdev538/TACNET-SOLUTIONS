@@ -1,94 +1,184 @@
-// TYPE THESE TWO LINES AT THE VERY TOP OF YOUR FILE MANUALLY:
-// #include <WiFi.h>
-// #include <FirebaseESP32.h>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TACNET Solutions - Command Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #0b1329;
+            --red-alert: #d9534f;
+            --orange-channel: #f0ad4e;
+            --green-secure: #5cb85c;
+            --bg-dark: #121824;
+            --text-light: #f8f9fa;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; color: #38bdf8; font-size: 24px; }
+        .subtitle { font-size: 14px; color: #94a3b8; margin-top: 5px; }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .panel {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        /* Alert Buttons */
+        .alert-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        @media(min-width: 600px) {
+            .alert-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .btn-alert {
+            padding: 25px 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .btn-alert:active { transform: scale(0.98); }
+        .btn-red { background-color: var(--red-alert); }
+        .btn-orange { background-color: var(--orange-channel); color: #000; }
+        .btn-green { background-color: var(--green-secure); }
 
-// Wi-Fi Credentials
-#define WIFI_SSID "YOUR_WIFI_NAME"
-#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+        /* Bus Tracking Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #0f172a; color: #38bdf8; }
 
-// Firebase Project Credentials
-#define FIREBASE_HOST "tacnet-solutions-default-rtdb.firebaseio.com"
-#define FIREBASE_AUTH "YOUR_FIREBASE_DATABASE_SECRET_OR_WEB_API_KEY"
+        /* Disclaimer Footer */
+        .disclaimer {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 30px;
+            border-top: 1px solid #1e293b;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
 
-FirebaseData firebaseData;
-FirebaseAuth auth;
-FirebaseConfig config;
+<div class="container">
+    <header>
+        <h1>TACNET SOLUTIONS</h1>
+        <div class="subtitle">Multi-Agency Emergency Coordination & Fleet Tracking</div>
+        <div class="subtitle" style="color: #cbd5e1; font-weight: bold; margin-top: 4px;">Created by retired Deputy Sheriff Earl Wood, Virginia</div>
+    </header>
 
-// Define Pin Mappings for all 7 Classrooms (Red and Green LEDs)
-struct ClassroomPins {
-  const char* id;
-  int redPin;
-  int greenPin;
-};
+    <!-- Emergency Action Panel -->
+    <div class="panel">
+        <h2>Emergency & Operations Control</h2>
+        <div class="alert-grid">
+            <button class="btn-alert btn-red" onclick="triggerAlert('RED')">🔴 RED ALERT<br><span style="font-size:12px; font-weight:normal;">Immediate 911 / Law Enforcement</span></button>
+            <button class="btn-alert btn-orange" onclick="triggerAlert('ORANGE')">🟠 ORANGE CHANNEL<br><span style="font-size:12px; font-weight:normal;">General Coordination</span></button>
+            <button class="btn-alert btn-green" onclick="triggerAlert('GREEN')">🟢 GREEN STATUS<br><span style="font-size:12px; font-weight:normal;">All Clear / Secure</span></button>
+        </div>
+    </div>
 
-ClassroomPins rooms[] = {
-  {"room120", 13, 12}, // Downstairs Left
-  {"room121", 14, 27},
-  {"room122", 26, 25},
-  {"room200", 33, 32}, // Upstairs Left
-  {"room201", 4,  16},
-  {"room202", 17, 5},
-  {"room203", 18, 19}
-};
+    <!-- School Bus Fleet GPS Live View -->
+    <div class="panel">
+        <h2>School Bus & Fleet Live GPS Tracker</h2>
+        <p style="font-size: 13px; color: #94a3b8;">Active monitoring for school buses and route security.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Bus #</th>
+                    <th>Driver Name</th>
+                    <th>Route</th>
+                    <th>Status / GPS</th>
+                </tr>
+            </thead>
+            <tbody id="bus-fleet-table">
+                <tr>
+                    <td>Bus 104</td>
+                    <td>J. Miller</td>
+                    <td>Route 4 - North County</td>
+                    <td><span style="color: #5cb85c;">● Live (GPS Active)</span></td>
+                </tr>
+                <tr>
+                    <td>Bus 112</td>
+                    <td>R. Davis</td>
+                    <td>Route 2 - Central High</td>
+                    <td><span style="color: #5cb85c;">● Live (GPS Active)</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-const int totalRooms = 7;
-unsigned long previousMillis = 0;
-bool flashState = false;
+    <!-- Legal Disclaimer -->
+    <div class="disclaimer">
+        <strong>DISCLAIMER:</strong> TACNET Solutions is a tactical coordination and notification tool designed to assist authorized school personnel and law enforcement agencies. Created by Earl Wood (Retired Deputy Sheriff). Use of this system implies adherence to local emergency protocols. TACNET Solutions assumes no liability for hardware failure, cellular carrier interruptions, or delayed emergency responses.
+    </div>
+</div>
 
-void setup() {
-  Serial.begin(115200);
+<!-- Firebase SDK Integration -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  // Initialize all LED pins as outputs
-  for (int i = 0; i < totalRooms; i++) {
-    pinMode(rooms[i].redPin, OUTPUT);
-    pinMode(rooms[i].greenPin, OUTPUT);
-    // Start all green ON, red OFF
-    digitalWrite(rooms[i].greenPin, HIGH);
-    digitalWrite(rooms[i].redPin, LOW);
-  }
+    // Your Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDspWm87xwu8mojW2I4uil-XKoSJtPGlDo",
+        authDomain: "tacnet-solutions.firebaseapp.com",
+        databaseURL: "https://tacnet-solutions-default-rtdb.firebaseio.com",
+        projectId: "tacnet-solutions",
+        storageBucket: "tacnet-solutions.firebasestorage.app",
+        messagingSenderId: "187011886327",
+        appId: "1:187011886327:web:e7d4758bf9198b467777f2",
+        measurementId: "G-PB9GLPJFQ1"
+    };
 
-  // Connect Wi-Fi
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi Connected!");
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  // Configure Firebase
-  config.database_url = FIREBASE_HOST;
-  config.signer.test_mode = true;
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
-}
-
-void loop() {
-  unsigned long currentMillis = millis();
-  
-  // Flash toggle every 500ms for active red alarms
-  if (currentMillis - previousMillis >= 500) {
-    previousMillis = currentMillis;
-    flashState = !flashState;
-  }
-
-  // Check status for each of the 7 rooms from Firebase
-  for (int i = 0; i < totalRooms; i++) {
-    String path = String("/classrooms/") + rooms[i].id + "/status";
-    
-    if (Firebase.getString(firebaseData, path)) {
-      String status = firebaseData.stringData();
-      
-      if (status == "ALERT") {
-        // Extinguish Green, Flash Red LED for this specific room
-        digitalWrite(rooms[i].greenPin, LOW);
-        digitalWrite(rooms[i].redPin, flashState ? HIGH : LOW);
-      } else {
-        // Secure State: Solid Green ON, Red OFF
-        digitalWrite(rooms[i].greenPin, HIGH);
-        digitalWrite(rooms[i].redPin, LOW);
-      }
+    // Global alert trigger function linked to Firebase
+    window.triggerAlert = function(level) {
+        if(level === 'RED') {
+            let desc = prompt("CRITICAL: Describe the threat (Location, suspect description):");
+            if(!desc) return;
+            
+            // Push alert to Firebase Realtime Database
+            set(ref(db, 'alerts/current'), {
+                level: 'RED',
+                description: desc,
+                timestamp: Date.now(),
+                source: 'School/Bus Master Dispatch'
+            }).then(() => {
+                alert("RED ALERT BROADCASTED LIVE TO LAW ENFORCEMENT.");
+            });
+        } else if(level === 'ORANGE') {
+            alert("Orange Channel opened for general coordination.");
+        } else if(level === 'GREEN') {
+            alert("Status set to GREEN (Secure).");
+        }
     }
-  }
-  
-  delay(100); // Brief pause before next telemetry poll
-}
+</script>
+
+</body>
+</html>
