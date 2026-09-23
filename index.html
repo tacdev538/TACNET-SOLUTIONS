@@ -125,7 +125,7 @@
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
         }
 
-        /* Modal Overlay for Voice-to-Text Threat Description */
+        /* Modal Overlays */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -133,7 +133,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -144,7 +144,7 @@
             border: 3px solid var(--alert-red);
             padding: 25px;
             border-radius: 10px;
-            max-width: 500px;
+            max-width: 520px;
             width: 90%;
             box-shadow: 0 8px 25px rgba(0,0,0,0.6);
             text-align: center;
@@ -161,18 +161,14 @@
             background: linear-gradient(135deg, #3B82F6, #1D4ED8);
             color: white;
             border: 3px solid var(--command-blue);
-            padding: 22px;
+            padding: 20px;
             width: 100%;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 17px;
             cursor: pointer;
-            margin: 20px 0 10px 0;
+            margin: 15px 0 10px 0;
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
         .btn-speak.listening {
@@ -192,14 +188,51 @@
             border: 1px solid var(--command-blue);
             padding: 12px;
             border-radius: 6px;
-            font-size: 15px;
+            font-size: 14px;
             color: var(--text-light);
-            min-height: 45px;
+            min-height: 40px;
             margin-bottom: 20px;
             text-align: left;
         }
 
-        .btn-submit-threat {
+        /* Suspect Photo Grid Styles */
+        .suspect-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .suspect-card {
+            background: #172554;
+            border: 2px solid var(--command-blue);
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .suspect-card.selected {
+            border-color: var(--alert-red);
+            background-color: #2D3748;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+        }
+
+        .suspect-card img {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .suspect-card span {
+            font-size: 11px;
+            color: var(--text-light);
+            display: block;
+        }
+
+        .btn-action {
             background-color: var(--secure-green);
             color: white;
             border: none;
@@ -209,6 +242,7 @@
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
         .action-grid {
@@ -321,23 +355,46 @@
         <button class="btn-red" onclick="triggerRedAlert()">🚨 TRIGGER RED ALERT (INSTANT DISPATCH)</button>
     </div>
 
-    <!-- VOICE-TO-TEXT THREAT DESCRIPTION MODAL -->
-    <div id="threatModal" class="modal-overlay">
+    <!-- STEP 2: VOICE DESCRIPTION MODAL -->
+    <div id="voiceModal" class="modal-overlay">
         <div class="modal-card">
             <h2>🚨 RED ALERT DISPATCHED!</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Zone locked. Tap below and speak details:</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Zone locked. Tap below and speak threat details:</p>
             
-            <!-- Live Voice Trigger Button -->
             <button id="speakButton" class="btn-speak" onclick="startVoiceRecognition()">
-                🎙️ TAP TO SPEAK HERE
+                🎙️ TAP TO SPEAK NOW
             </button>
 
-            <!-- Live Speech Transcript Box -->
             <div id="transcriptBox" class="speech-transcript">
-                Listening for voice description... (or type notes below)
+                Listening for voice description...
             </div>
 
-            <button class="btn-submit-threat" onclick="submitThreatDetails()">SEND DESCRIPTION TO LAW ENFORCEMENT</button>
+            <button class="btn-action" onclick="proceedToPhotoSelection()">NEXT: SELECT SUSPECT PROFILE PHOTO</button>
+        </div>
+    </div>
+
+    <!-- STEP 3: SUSPECT PHOTO SELECTOR MODAL -->
+    <div id="photoModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>📸 SELECT SUSPECT MATCH</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Tap matching profile description to bundle with alert:</p>
+            
+            <div class="suspect-grid">
+                <div class="suspect-card" id="suspect-1" onclick="selectSuspect('Green Jacket / Hoodie')">
+                    <div style="background:#0F172A; height:70px; display:flex; align-items:center; justify-content:center; color:#60A5FA; font-size:22px; border-radius:4px; margin-bottom:5px;">🧥</div>
+                    <span>Green Jacket</span>
+                </div>
+                <div class="suspect-card" id="suspect-2" onclick="selectSuspect('Dark Hoodie / Mask')">
+                    <div style="background:#0F172A; height:70px; display:flex; align-items:center; justify-content:center; color:#60A5FA; font-size:22px; border-radius:4px; margin-bottom:5px;">👤</div>
+                    <span>Dark Hoodie</span>
+                </div>
+                <div class="suspect-card" id="suspect-3" onclick="selectSuspect('Light Shirt / Backpack')">
+                    <div style="background:#0F172A; height:70px; display:flex; align-items:center; justify-content:center; color:#60A5FA; font-size:22px; border-radius:4px; margin-bottom:5px;">🎒</div>
+                    <span>Backpack</span>
+                </div>
+            </div>
+
+            <button class="btn-action" onclick="finalizeAndBroadcastAlert()">🚀 BROADCAST COMPLETE PACKAGE TO LAW ENFORCEMENT</button>
         </div>
     </div>
 
@@ -423,6 +480,7 @@
     let selectedCurrentZone = "NONE";
     let activeAlertKey = null;
     let recordedThreatText = "";
+    let selectedSuspectPhoto = "None Selected";
 
     function selectZone(zoneName) {
         selectedCurrentZone = zoneName;
@@ -453,31 +511,30 @@
         const newAlertRef = database.ref('alerts').push({
             type: 'RED ALERT',
             zone: selectedCurrentZone,
-            description: 'Voice description pending...',
+            description: 'Voice pending...',
+            suspectPhoto: 'Pending...',
             status: 'ACTIVE EMERGENCY',
             timestamp: Date.now()
         });
 
         activeAlertKey = newAlertRef.key;
         recordedThreatText = "";
-        document.getElementById('transcriptBox').innerText = "Tap 'SPEAK HERE' and describe the threat...";
-
-        // Instantly pop open the voice prompt for the teacher/driver
-        document.getElementById('threatModal').style.display = 'flex';
+        selectedSuspectPhoto = "None Selected";
         
-        // Auto-trigger voice recognition immediately for zero-touch speed
+        document.getElementById('transcriptBox').innerText = "Tap 'SPEAK NOW' and describe the threat...";
+        document.getElementById('voiceModal').style.display = 'flex';
+        
+        // Auto-trigger voice recognition
         startVoiceRecognition();
     }
 
     function startVoiceRecognition() {
         const speakBtn = document.getElementById('speakButton');
         const transcriptBox = document.getElementById('transcriptBox');
-
-        // Check for browser SpeechRecognition support (standard on iOS Safari and Android Chrome)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
         if (!SpeechRecognition) {
-            transcriptBox.innerText = "Speech recognition not supported on this browser. Please type or speak directly.";
+            transcriptBox.innerText = "Speech recognition not supported on this browser. Proceeding to photos.";
             return;
         }
 
@@ -498,31 +555,46 @@
 
         recognition.onerror = function(event) {
             speakBtn.classList.remove('listening');
-            speakBtn.innerText = "🎙️ TAP TO SPEAK HERE";
-            transcriptBox.innerText = "Voice capture error. Tap button to try again.";
+            speakBtn.innerText = "🎙️ TAP TO SPEAK NOW";
+            transcriptBox.innerText = "Voice capture complete or bypassed.";
         };
 
         recognition.onend = function() {
             speakBtn.classList.remove('listening');
             speakBtn.innerText = "🎙️ TAP TO SPEAK AGAIN";
             if (!recordedThreatText) {
-                transcriptBox.innerText = "No speech detected. Tap button to retry.";
+                transcriptBox.innerText = "No speech detected. Proceeding is ready.";
             }
         };
 
         recognition.start();
     }
 
-    function submitThreatDetails() {
+    function proceedToPhotoSelection() {
+        document.getElementById('voiceModal').style.display = 'none';
+        document.getElementById('photoModal').style.display = 'flex';
+    }
+
+    function selectSuspect(profileName) {
+        selectedSuspectPhoto = profileName;
+        document.getElementById('suspect-1').classList.remove('selected');
+        document.getElementById('suspect-2').classList.remove('selected');
+        document.getElementById('suspect-3').classList.remove('selected');
+        
+        event.currentTarget.classList.add('selected');
+    }
+
+    function finalizeAndBroadcastAlert() {
         const finalDesc = recordedThreatText || "Voice alert triggered - no verbal description provided.";
         if (activeAlertKey) {
             database.ref('alerts/' + activeAlertKey).update({
-                description: finalDesc
+                description: finalDesc,
+                suspectPhoto: selectedSuspectPhoto
             });
         }
-        // Close modal
-        document.getElementById('threatModal').style.display = 'none';
+        document.getElementById('photoModal').style.display = 'none';
         recordedThreatText = "";
+        selectedSuspectPhoto = "None Selected";
     }
 
     function openChannel() {
@@ -539,6 +611,7 @@
         selectedCurrentZone = "NONE";
         activeAlertKey = null;
         recordedThreatText = "";
+        selectedSuspectPhoto = "None Selected";
         document.getElementById('zone-MAIN').classList.remove('selected');
         document.getElementById('zone-CAF').classList.remove('selected');
         document.getElementById('zone-GYM').classList.remove('selected');
