@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TACNET Solutions - Command Dashboard</title>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         :root {
             --bg-slate: #0B132B;
@@ -271,13 +276,13 @@
     <div class="grid">
         <div class="card" style="border-top: 4px solid var(--alert-red);">
             <h3 style="color: var(--alert-red);">🔴 Emergency Red Alert</h3>
-            <p style="font-size: 11px; color: var(--text-muted);">Instant sub-second broadcast & threat selection.</p>
+            <p style="font-size: 11px; color: var(--text-muted);">Instant sub-second broadcast & hardware trigger.</p>
             <button class="btn-red" onclick="triggerGlobalAlert()">🚨 TRIGGER FACILITY ALERT</button>
         </div>
 
         <div class="card" style="border-top: 4px solid var(--alert-amber);">
             <h3 style="color: var(--alert-amber);">🟠 Coordination & Reset</h3>
-            <p style="font-size: 11px; color: var(--text-muted);">Non-emergency channel & zone controls.</p>
+            <p style="font-size: 11px; color: var(--text-muted);">Non-emergency channel & hardware reset.</p>
             <button class="btn-orange" onclick="openChannel()">Open General Channel</button>
             <button class="btn-green" onclick="resetAllRooms()">🟢 All Secure / Reset All</button>
         </div>
@@ -285,8 +290,8 @@
 
     <!-- Interactive 7 Classrooms Status Grid -->
     <div class="card" style="border-top: 4px solid var(--command-blue);">
-        <h3 style="color: var(--command-blue);">🏫 School Facility - 7 Rooms Control & Status</h3>
-        <p style="font-size: 11px; color: var(--text-muted);">Tap any room badge below to toggle between Secure (Green) and Alert (Red).</p>
+        <h3 style="color: var(--command-blue);">🏫 School Facility - 7 Rooms Control & Hardware Sync</h3>
+        <p style="font-size: 11px; color: var(--text-muted);">Tap any room badge to toggle physical ESP32 LEDs and phone alert.</p>
         
         <div class="room-grid">
             <div class="room-badge" id="room-120" onclick="toggleRoom('120')">Rm 120<br><span id="txt-120" style="color:var(--secure-green);">SECURE</span></div>
@@ -327,7 +332,7 @@
 <div id="alertModal">
     <div class="modal-content">
         <h2 style="color: var(--alert-red); margin-top:0; font-size:20px;">🚨 RED ALERT ACTIVE</h2>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Signal broadcasted to Law Enforcement & Command.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Signal broadcasted to Law Enforcement & Hardware.</p>
         
         <div class="photo-grid">
             <div class="photo-option" onclick="activateLiveSpeech()" style="border: 2px solid var(--command-blue); background: rgba(58, 134, 255, 0.15);">
@@ -361,6 +366,17 @@
 </div>
 
 <script>
+    // TODO: Paste your Firebase project configuration credentials here if needed, 
+    // or use your default Realtime Database URL:
+    const firebaseConfig = {
+        databaseURL: "https://tacnet-solutions-default-rtdb.firebaseio.com"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
     let roomStates = {
         '120': false, '121': false, '122': false,
         '200': false, '201': false, '202': false, '203': false
@@ -374,7 +390,7 @@
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-        if (sirenOsc) return; // already playing
+        if (sirenOsc) return;
 
         sirenOsc = audioCtx.createOscillator();
         let gainNode = audioCtx.createGain();
@@ -382,7 +398,6 @@
         sirenOsc.type = 'sawtooth';
         sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
         
-        // Frequency sweep for wail
         setInterval(() => {
             if (!sirenOsc) return;
             let time = audioCtx.currentTime;
@@ -406,22 +421,33 @@
 
     function toggleRoom(roomNum) {
         roomStates[roomNum] = !roomStates[roomNum];
+        let newState = roomStates[roomNum];
+        
+        // Update Firebase so the ESP32 hardware picks it up instantly
+        db.ref('classrooms/room' + roomNum + '/status').set(newState ? 'ALERT' : 'SECURE');
+
+        updateRoomUI(roomNum, newState);
+
+        let anyAlerts = Object.values(roomStates).includes(true);
+        if (anyAlerts) {
+            playSiren();
+        } else {
+            stopSiren();
+        }
+    }
+
+    function updateRoomUI(roomNum, isAlert) {
         let el = document.getElementById('room-' + roomNum);
         let txt = document.getElementById('txt-' + roomNum);
         
-        if (roomStates[roomNum]) {
+        if (isAlert) {
             el.className = 'room-badge alert';
             txt.innerHTML = 'ALERT';
             txt.style.color = 'var(--alert-red)';
-            playSiren();
         } else {
             el.className = 'room-badge';
             txt.innerHTML = 'SECURE';
             txt.style.color = 'var(--secure-green)';
-            
-            // If all rooms are now secure, stop the siren
-            let anyAlerts = Object.values(roomStates).includes(true);
-            if (!anyAlerts) stopSiren();
         }
     }
 
@@ -431,11 +457,8 @@
         let rooms = ['120', '121', '122', '200', '201', '202', '203'];
         rooms.forEach(r => {
             roomStates[r] = true;
-            let el = document.getElementById('room-' + r);
-            let txt = document.getElementById('txt-' + r);
-            el.className = 'room-badge alert';
-            txt.innerHTML = 'ALERT';
-            txt.style.color = 'var(--alert-red)';
+            db.ref('classrooms/room' + r + '/status').set('ALERT');
+            updateRoomUI(r, true);
         });
     }
 
@@ -462,13 +485,10 @@
         let rooms = ['120', '121', '122', '200', '201', '202', '203'];
         rooms.forEach(r => {
             roomStates[r] = false;
-            let el = document.getElementById('room-' + r);
-            let txt = document.getElementById('txt-' + r);
-            el.className = 'room-badge';
-            txt.innerHTML = 'SECURE';
-            txt.style.color = 'var(--secure-green)';
+            db.ref('classrooms/room' + r + '/status').set('SECURE');
+            updateRoomUI(r, false);
         });
-        alert("🟢 System reset. All 7 rooms marked Secure and audio silenced.");
+        alert("🟢 System reset. All 7 rooms marked Secure, database updated, and hardware silenced.");
     }
 </script>
 
